@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control de Gastos 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #F7F6F2;
+    --surface: #FFFFFF;
+    --surface2: #F0EFE9;
+    --border: #E3E1D8;
+    --text: #1A1916;
+    --text2: #6B6960;
+    --text3: #9C9A91;
+    --green: #3B6D11;
+    --green-bg: #EAF3DE;
+    --amber: #854F0B;
+    --amber-bg: #FAEEDA;
+    --red: #A32D2D;
+    --red-bg: #FCEBEB;
+    --accent: #1A1916;
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1.5rem;
+  }
+  .container { max-width: 860px; margin: 0 auto; }
+
+  /* Header */
+  .header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
+  .header-left h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+  .header-left p { font-size: 13px; color: var(--text2); margin-top: 3px; }
+  .mes-select select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236B6960'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+  }
+  select:focus { outline: none; border-color: var(--accent); }
+
+  /* Presupuesto */
+  .tope-row {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .tope-row label { font-size: 13px; color: var(--text2); white-space: nowrap; font-weight: 500; }
+  .tope-row input {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    padding: 7px 12px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    width: 190px;
+    transition: border-color 0.15s;
+  }
+  .tope-row input:focus { outline: none; border-color: var(--accent); }
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 16px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--accent);
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn.secondary {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+  }
+  .btn.secondary:hover { background: var(--bg); }
+
+  /* Alert */
+  .alert {
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 1.25rem;
+    display: none;
+    align-items: center;
+    gap: 8px;
+  }
+  .alert.show { display: flex; }
+  .alert.warning { background: var(--amber-bg); color: var(--amber); border: 1px solid #EF9F27; }
+  .alert.danger { background: var(--red-bg); color: var(--red); border: 1px solid #E24B4A; }
+  .alert-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .alert.warning .alert-dot { background: var(--amber); }
+  .alert.danger .alert-dot { background: var(--red); }
+
+  /* Metrics */
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 1.25rem; }
+  .metric {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.2rem;
+  }
+  .metric-label { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .metric-value { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; color: var(--text); }
+  .metric-value.ok { color: var(--green); }
+  .metric-value.warning { color: var(--amber); }
+  .metric-value.danger { color: var(--red); }
+
+  /* Progress */
+  .progress-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  .progress-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .progress-header span { font-size: 13px; color: var(--text2); font-weight: 500; }
+  .pct-label { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; }
+  .pct-label.ok { color: var(--green); }
+  .pct-label.warning { color: var(--amber); }
+  .pct-label.danger { color: var(--red); }
+  .track { height: 8px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+  .fill { height: 100%; border-radius: 99px; transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+  .fill.ok { background: #639922; }
+  .fill.warning { background: #BA7517; }
+  .fill.danger { background: #E24B4A; }
+  .progress-footer { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+  /* Tipo cards */
+  .tipo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+  .tipo-card {
+    background: var(--surface2);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+  }
+  .tipo-label { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+  .tipo-val { font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 500; color: var(--text); }
+
+  /* Section */
+  .section { margin-bottom: 1.25rem; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .section-title { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; }
+  .card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; }
+
+  /* Categorías */
+  .cat-list { display: flex; flex-direction: column; gap: 12px; }
+  .cat-row { display: grid; grid-template-columns: 170px 1fr 120px; align-items: center; gap: 14px; }
+  .cat-name { font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cat-track { height: 5px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+  .cat-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+  .cat-amount { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2); text-align: right; }
+  .cat-empty { font-size: 13px; color: var(--text3); text-align: center; padding: 1.5rem 0; }
+
+  /* Gráfico */
+  .chart-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: center; }
+  .chart-wrap { position: relative; height: 200px; }
+  .legend { display: flex; flex-direction: column; gap: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text2); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+  .legend-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .legend-val { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); }
+
+  /* Formulario */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group label { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
+  .form-group input, .form-group select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    transition: border-color 0.15s;
+  }
+  .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); }
+  .form-actions { display: flex; gap: 8px; margin-top: 4px; }
+
+  /* Tabla gastos */
+  .gastos-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .gastos-table th { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; padding: 0 8px 10px; text-align: left; border-bottom: 1.5px solid var(--border); }
+  .gastos-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: middle; }
+  .gastos-table tr:last-child td { border-bottom: none; }
+  .gastos-table td:first-child { color: var(--text); font-weight: 500; }
+  .gastos-table td.mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+  .tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .tag.fijo { background: #E6F1FB; color: #185FA5; }
+  .tag.variable { background: #FAEEDA; color: #854F0B; }
+  .tag.ocasional { background: var(--surface2); color: var(--text3); }
+  .tag.anual { background: #EAF3DE; color: #3B6D11; }
+  .del-btn { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 14px; padding: 2px 6px; border-radius: 4px; }
+  .del-btn:hover { background: var(--red-bg); color: var(--red); }
+  .empty-table { text-align: center; color: var(--text3); font-size: 13px; padding: 2rem 0; }
+
+  /* Divider */
+  .divider { border: none; border-top: 1.5px solid var(--border); margin: 1.25rem 0; }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .cat-row { grid-template-columns: 130px 1fr 90px; }
+    .chart-layout { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .tipo-grid { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>Control de Gastos 2026</h1>
+      <p>Seguimiento financiero personal &mdash; Mayo a Diciembre</p>
+    </div>
+    <div class="mes-select">
+      <select id="mesSelect">
+        <option value="Mayo 2026">Mayo 2026</option>
+        <option value="Junio 2026">Junio 2026</option>
+        <option value="Julio 2026">Julio 2026</option>
+        <option value="Agosto 2026">Agosto 2026</option>
+        <option value="Septiembre 2026">Septiembre 2026</option>
+        <option value="Octubre 2026">Octubre 2026</option>
+        <option value="Noviembre 2026">Noviembre 2026</option>
+        <option value="Diciembre 2026">Diciembre 2026</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Tope -->
+  <div class="tope-row">
+    <label>Tope mensual (COP$)</label>
+    <input type="number" id="topeInput" placeholder="Ej: 8.000.000" step="100000" />
+    <button class="btn" onclick="setTope()">Aplicar tope</button>
+  </div>
+
+  <!-- Alerta -->
+  <div class="alert" id="alertBox">
+    <div class="alert-dot"></div>
+    <span id="alertMsg"></span>
+  </div>
+
+  <!-- Métricas -->
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Total gastado</div>
+      <div class="metric-value" id="mTotal">$0</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Tope del mes</div>
+      <div class="metric-value" id="mTope">Sin definir</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Disponible</div>
+      <div class="metric-value" id="mDisp">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">N.º de gastos</div>
+      <div class="metric-value" id="mCount">0</div>
+    </div>
+  </div>
+
+  <!-- Progreso -->
+  <div class="progress-card">
+    <div class="progress-header">
+      <span>Avance del presupuesto</span>
+      <span class="pct-label ok" id="pctLabel">0%</span>
+    </div>
+    <div class="track">
+      <div class="fill ok" id="fillBar" style="width:0%"></div>
+    </div>
+    <div class="progress-footer">
+      <span id="pfGastado">COP $0 gastado</span>
+      <span id="pfTope">— tope no definido</span>
+    </div>
+  </div>
+
+  <!-- Tipo -->
+  <div class="tipo-grid">
+    <div class="tipo-card">
+      <div class="tipo-label">Gastos fijos</div>
+      <div class="tipo-val" id="tFijo">$0</div>
+    </div>
+    <div class="tipo-card">
+      <div class="tipo-label">Variables</div>
+      <div class="tipo-val" id="tVar">$0</div>
+    </div>
+    <div class="tipo-card">
+      <div class="tipo-label">Ocasionales / Anuales</div>
+      <div class="tipo-val" id="tOcas">$0</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Por categoría -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Por categoría</div>
+    </div>
+    <div class="card">
+      <div class="cat-list" id="catList">
+        <div class="cat-empty">Sin gastos registrados este mes</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráfico -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Distribución</div>
+    </div>
+    <div class="card">
+      <div class="chart-layout">
+        <div class="chart-wrap">
+          <canvas id="donut" role="img" aria-label="Gráfico de distribución de gastos por categoría">Distribución de gastos por categoría.</canvas>
+        </div>
+        <div class="legend" id="legendBox"></div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Formulario -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Registrar gasto</div>
+    </div>
+    <div class="card">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre del gasto</label>
+          <input type="text" id="fNombre" placeholder="Ej: Mercado Éxito" />
+        </div>
+        <div class="form-group">
+          <label>Monto (COP$)</label>
+          <input type="number" id="fMonto" placeholder="Ej: 350000" step="1000" />
+        </div>
+        <div class="form-group">
+          <label>Categoría</label>
+          <select id="fCat">
+            <option value="Vivienda y Servicios">Vivienda y Servicios</option>
+            <option value="Transporte y Vehículo">Transporte y Vehículo</option>
+            <option value="Alimentación">Alimentación</option>
+            <option value="Tecnología">Tecnología</option>
+            <option value="Salud y Bienestar">Salud y Bienestar</option>
+            <option value="Personal y Hogar">Personal y Hogar</option>
+            <option value="Financiero">Financiero</option>
+            <option value="Ocio">Ocio</option>
+            <option value="Imprevistos">Imprevistos</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tipo</label>
+          <select id="fTipo">
+            <option value="Fijo">Fijo</option>
+            <option value="Variable">Variable</option>
+            <option value="Ocasional">Ocasional</option>
+            <option value="Anual">Anual</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions" style="margin-top:14px;">
+        <button class="btn" onclick="agregarGasto()">+ Agregar gasto</button>
+        <button class="btn secondary" onclick="limpiarForm()">Limpiar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista gastos -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Gastos del mes</div>
+      <button class="btn secondary" onclick="exportarCSV()" style="font-size:11px;padding:4px 10px;">Exportar CSV</button>
+    </div>
+    <div class="card" style="overflow-x:auto;">
+      <table class="gastos-table">
+        <thead>
+          <tr>
+            <th>Gasto</th>
+            <th>Categoría</th>
+            <th>Tipo</th>
+            <th>Fecha</th>
+            <th style="text-align:right;">Monto</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="gastosBody">
+          <tr><td colspan="6" class="empty-table">Sin gastos registrados para este mes</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const CAT_COLORS = {
+  'Vivienda y Servicios': '#378ADD',
+  'Transporte y Vehículo': '#BA7517',
+  'Alimentación': '#639922',
+  'Tecnología': '#7F77DD',
+  'Salud y Bienestar': '#D4537E',
+  'Personal y Hogar': '#1D9E75',
+  'Financiero': '#E24B4A',
+  'Ocio': '#D85A30',
+  'Imprevistos': '#888780'
+};
+
+let state = JSON.parse(localStorage.getItem('gastos2026') || '{"gastos":{},"topes":{}}');
+let chart = null;
+
+function save() { localStorage.setItem('gastos2026', JSON.stringify(state)); }
+
+function getMes() { return document.getElementById('mesSelect').value; }
+
+function cop(n) {
+  return 'COP $' + Math.round(n).toLocaleString('es-CO');
+}
+
+function setTope() {
+  const v = parseFloat(document.getElementById('topeInput').value);
+  if (!isNaN(v) && v > 0) {
+    state.topes[getMes()] = v;
+    save();
+    render();
+  }
+}
+
+function agregarGasto() {
+  const nombre = document.getElementById('fNombre').value.trim();
+  const monto = parseFloat(document.getElementById('fMonto').value);
+  const cat = document.getElementById('fCat').value;
+  const tipo = document.getElementById('fTipo').value;
+  if (!nombre || isNaN(monto) || monto <= 0) return;
+  const mes = getMes();
+  if (!state.gastos[mes]) state.gastos[mes] = [];
+  state.gastos[mes].push({
+    id: Date.now(),
+    nombre, cat, tipo, monto,
+    fecha: new Date().toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit' })
+  });
+  save();
+  limpiarForm();
+  render();
+}
+
+function eliminarGasto(id) {
+  const mes = getMes();
+  state.gastos[mes] = (state.gastos[mes] || []).filter(g => g.id !== id);
+  save();
+  render();
+}
+
+function limpiarForm() {
+  document.getElementById('fNombre').value = '';
+  document.getElementById('fMonto').value = '';
+}
+
+function exportarCSV() {
+  const mes = getMes();
+  const lista = state.gastos[mes] || [];
+  if (!lista.length) return;
+  const rows = [['Gasto','Categoría','Tipo','Fecha','Monto COP']];
+  lista.forEach(g => rows.push([g.nombre, g.cat, g.tipo, g.fecha, g.monto]));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'gastos-' + mes.replace(' ','_') + '.csv';
+  a.click();
+}
+
+function render() {
+  const mes = getMes();
+  const lista = state.gastos[mes] || [];
+  const tope = state.topes[mes] || 0;
+  const total = lista.reduce((s, g) => s + g.monto, 0);
+
+  const topeInput = document.getElementById('topeInput');
+  if (tope > 0 && !topeInput.value) topeInput.value = tope;
+
+  document.getElementById('mTotal').textContent = cop(total);
+  document.getElementById('mCount').textContent = lista.length;
+  document.getElementById('pfGastado').textContent = cop(total) + ' gastado';
+
+  if (tope > 0) {
+    document.getElementById('mTope').textContent = cop(tope);
+    const disp = tope - total;
+    const dispEl = document.getElementById('mDisp');
+    dispEl.textContent = cop(Math.abs(disp));
+    dispEl.className = 'metric-value ' + (disp < 0 ? 'danger' : disp < tope * 0.2 ? 'warning' : 'ok');
+    document.getElementById('pfTope').textContent = cop(tope) + ' tope';
+
+    const pct = Math.min((total / tope) * 100, 100);
+    const rawPct = Math.round((total / tope) * 100);
+    const status = rawPct >= 100 ? 'danger' : rawPct >= 80 ? 'warning' : 'ok';
+
+    const fill = document.getElementById('fillBar');
+    fill.style.width = pct + '%';
+    fill.className = 'fill ' + status;
+    const pctLabel = document.getElementById('pctLabel');
+    pctLabel.textContent = rawPct + '%';
+    pctLabel.className = 'pct-label ' + status;
+
+    const alertBox = document.getElementById('alertBox');
+    const alertMsg = document.getElementById('alertMsg');
+    if (rawPct >= 100) {
+      alertBox.className = 'alert show danger';
+      alertMsg.textContent = 'Presupuesto superado en ' + cop(total - tope) + '. Revisa tus gastos del mes.';
+    } else if (rawPct >= 80) {
+      alertBox.className = 'alert show warning';
+      alertMsg.textContent = 'Llevas el ' + rawPct + '% del presupuesto. Te quedan ' + cop(tope - total) + ' disponibles.';
+    } else {
+      alertBox.className = 'alert';
+    }
+  } else {
+    document.getElementById('mTope').textContent = 'Sin definir';
+    document.getElementById('mDisp').textContent = '—';
+    document.getElementById('pfTope').textContent = '— tope no definido';
+    document.getElementById('fillBar').style.width = '0%';
+    document.getElementById('pctLabel').textContent = '0%';
+    document.getElementById('alertBox').className = 'alert';
+  }
+
+  const fijo = lista.filter(g => g.tipo === 'Fijo').reduce((s, g) => s + g.monto, 0);
+  const vari = lista.filter(g => g.tipo === 'Variable').reduce((s, g) => s + g.monto, 0);
+  const ocas = lista.filter(g => g.tipo !== 'Fijo' && g.tipo !== 'Variable').reduce((s, g) => s + g.monto, 0);
+  document.getElementById('tFijo').textContent = cop(fijo);
+  document.getElementById('tVar').textContent = cop(vari);
+  document.getElementById('tOcas').textContent = cop(ocas);
+
+  const porCat = {};
+  lista.forEach(g => { porCat[g.cat] = (porCat[g.cat] || 0) + g.monto; });
+  const sorted = Object.entries(porCat).sort((a, b) => b[1] - a[1]);
+
+  const catList = document.getElementById('catList');
+  if (!sorted.length) {
+    catList.innerHTML = '<div class="cat-empty">Sin gastos registrados este mes</div>';
+  } else {
+    const maxV = sorted[0][1];
+    catList.innerHTML = sorted.map(([cat, val]) => `
+      <div class="cat-row">
+        <div class="cat-name">${cat}</div>
+        <div class="cat-track"><div class="cat-fill" style="width:${(val/maxV*100).toFixed(1)}%;background:${CAT_COLORS[cat]||'#888'}"></div></div>
+        <div class="cat-amount">${cop(val)}</div>
+      </div>
+    `).join('');
+  }
+
+  const labels = sorted.map(([c]) => c);
+  const values = sorted.map(([, v]) => v);
+  const colors = labels.map(l => CAT_COLORS[l] || '#888');
+
+  if (chart) {
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = values;
+    chart.data.datasets[0].backgroundColor = colors;
+    chart.update('none');
+  } else {
+    chart = new Chart(document.getElementById('donut'), {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0 }] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '68%',
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ' ' + cop(ctx.parsed) } }
+        }
+      }
+    });
+  }
+
+  const legendBox = document.getElementById('legendBox');
+  if (!sorted.length) {
+    legendBox.innerHTML = '<span style="font-size:12px;color:var(--text3)">Sin datos aún</span>';
+  } else {
+    legendBox.innerHTML = sorted.map(([cat, val]) => `
+      <div class="legend-item">
+        <div class="legend-dot" style="background:${CAT_COLORS[cat]||'#888'}"></div>
+        <span class="legend-name">${cat}</span>
+        <span class="legend-val">${total > 0 ? Math.round(val/total*100) : 0}%</span>
+      </div>
+    `).join('');
+  }
+
+  const tbody = document.getElementById('gastosBody');
+  if (!lista.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-table">Sin gastos registrados para este mes</td></tr>';
+  } else {
+    tbody.innerHTML = [...lista].reverse().map(g => `
+      <tr>
+        <td>${g.nombre}</td>
+        <td style="font-size:12px;color:var(--text2)">${g.cat}</td>
+        <td><span class="tag ${g.tipo.toLowerCase()}">${g.tipo}</span></td>
+        <td style="font-size:12px;color:var(--text3)">${g.fecha}</td>
+        <td class="mono" style="text-align:right;color:var(--text)">${cop(g.monto)}</td>
+        <td><button class="del-btn" onclick="eliminarGasto(${g.id})" title="Eliminar">×</button></td>
+      </tr>
+    `).join('');
+  }
+}
+
+document.getElementById('mesSelect').addEventListener('change', () => {
+  document.getElementById('topeInput').value = state.topes[getMes()] || '';
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
