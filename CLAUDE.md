@@ -21,7 +21,7 @@ Browser (index.html) → /api/notion (Vercel function) → Notion API → Notion
 
 - Vanilla JS, sin frameworks, sin build
 - Chart.js 4.4.1 (CDN) para el gráfico de dona
-- Tipografía: Roboto + Roboto Mono (Google Fonts)
+- Tipografía: Roboto (Google Fonts), con `tabular-nums` para números
 - Hosted en Vercel
 
 ## Sistema de diseño (Uber-inspired)
@@ -44,8 +44,8 @@ Browser (index.html) → /api/notion (Vercel function) → Notion API → Notion
 ```
 
 ### Tipografía
-- Display + body: **Roboto** (Google Fonts)
-- Mono: **Roboto Mono** para TODOS los números, montos y porcentajes
+- Display + body: **Roboto** (Google Fonts), todo en una sola familia
+- Números, montos y porcentajes: misma Roboto con `font-variant-numeric: tabular-nums` (alineación tipo tabla, cero redondo sin barra)
 - Pesos: 400 body, 500 énfasis, 600 títulos, 700 hero numbers
 - Letter-spacing: -0.01em body, -0.02em headings, -0.04em hero
 - Hero number tamaño: `clamp(44px, 7.5vw, 68px)` peso 700
