@@ -6,168 +6,308 @@
   <title>Control de Gastos 2026</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     :root {
-      --bg: #FAF9F6;
-      --card: #FFFFFF;
-      --text: #1A1A1A;
-      --text-muted: #6B7280;
-      --text-soft: #9CA3AF;
-      --border: #E5E7EB;
-      --accent: #2563EB;
-      --green: #10B981;
-      --yellow: #F59E0B;
-      --red: #EF4444;
-      --radius: 12px;
+      --bg: #FFFFFF;
+      --surface: #F7F7F7;
+      --surface-2: #EFEFEF;
+      --border: #E5E5E5;
+      --text: #000000;
+      --text-2: #545454;
+      --text-3: #8E8E8E;
+      --green: #00C16A;
+      --green-bg: #E6F8EF;
+      --red: #E11900;
+      --red-bg: #FDE7E4;
+      --amber: #F4B400;
+      --amber-bg: #FEF6DC;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--bg); }
     body {
-      font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
-      background: var(--bg);
+      font-family: 'Geist', system-ui, -apple-system, sans-serif;
       color: var(--text);
-      line-height: 1.5;
-      padding: 24px 16px;
+      line-height: 1.45;
+      letter-spacing: -0.01em;
+      padding: 32px 24px 64px;
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
-    .container { max-width: 1200px; margin: 0 auto; }
-    .mono { font-family: 'DM Mono', monospace; }
-    header {
-      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-      gap: 16px; margin-bottom: 24px;
+    .container { max-width: 1120px; margin: 0 auto; }
+    .mono { font-family: 'Geist Mono', ui-monospace, monospace; font-feature-settings: 'tnum' 1; }
+
+    /* ----- Top bar ----- */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap; margin-bottom: 32px;
     }
-    .title-block h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
-    .title-block p { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
+    .brand {
+      display: flex; align-items: baseline; gap: 12px;
+    }
+    .brand-mark {
+      font-size: 18px; font-weight: 600; letter-spacing: -0.02em;
+    }
+    .brand-sub {
+      font-size: 13px; color: var(--text-3);
+    }
     .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .status-badge {
+    .pill {
       display: inline-flex; align-items: center; gap: 6px;
-      padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500;
+      padding: 4px 10px; border-radius: 999px;
+      font-size: 12px; font-weight: 500; line-height: 1;
+      border: 1px solid transparent;
     }
-    .status-badge.loading { background: #FEF3C7; color: #92400E; }
-    .status-badge.ok { background: #D1FAE5; color: #065F46; }
-    .status-badge.error { background: #FEE2E2; color: #991B1B; }
-    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .pill.loading { background: var(--amber-bg); color: #7A5A00; }
+    .pill.ok { background: var(--green-bg); color: #00643A; }
+    .pill.error { background: var(--red-bg); color: #8A0F00; }
+
     select, input, button {
-      font-family: inherit; font-size: 14px; padding: 8px 14px;
-      border: 1px solid var(--border); border-radius: 8px;
-      background: var(--card); color: var(--text);
+      font-family: inherit; font-size: 14px; line-height: 1;
+      height: 40px; padding: 0 14px;
+      border: 1px solid var(--border); border-radius: 10px;
+      background: var(--bg); color: var(--text);
+      letter-spacing: -0.01em;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
     }
-    button { cursor: pointer; font-weight: 500; transition: all 0.15s; }
-    button:hover { background: #F3F4F6; }
-    button.primary { background: var(--text); color: white; border-color: var(--text); }
-    button.primary:hover { opacity: 0.9; background: var(--text); }
+    select { padding-right: 32px; appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M3 4.5L6 7.5L9 4.5' stroke='%23545454' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+      background-repeat: no-repeat; background-position: right 12px center;
+    }
+    input::placeholder { color: var(--text-3); }
+    input:focus, select:focus, button:focus { outline: none; border-color: var(--text); }
+    button { cursor: pointer; font-weight: 500; }
+    button:hover { background: var(--surface); }
+    button.primary {
+      background: var(--text); color: #FFF; border-color: var(--text); font-weight: 600;
+    }
+    button.primary:hover { background: #1A1A1A; }
+    button.ghost { background: transparent; }
+
+    /* ----- Hero ----- */
+    .hero {
+      background: var(--text); color: #FFF;
+      border-radius: 16px; padding: 36px 32px;
+      display: grid; grid-template-columns: 1fr auto; gap: 24px;
+      align-items: end;
+      margin-bottom: 24px;
+    }
+    .hero-label {
+      font-size: 13px; color: rgba(255,255,255,0.6);
+      text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;
+      margin-bottom: 12px;
+    }
+    .hero-number {
+      font-family: 'Geist Mono', ui-monospace, monospace;
+      font-size: clamp(44px, 7.5vw, 68px);
+      font-weight: 700; letter-spacing: -0.04em; line-height: 1;
+    }
+    .hero-meta {
+      display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+      text-align: right;
+    }
+    .hero-meta .row {
+      display: flex; gap: 10px; align-items: baseline;
+      font-size: 13px; color: rgba(255,255,255,0.6);
+    }
+    .hero-meta .row strong {
+      font-family: 'Geist Mono', ui-monospace, monospace;
+      color: #FFF; font-weight: 500; letter-spacing: -0.02em;
+    }
+    .hero-progress {
+      grid-column: 1 / -1; margin-top: 4px;
+    }
+    .hero-progress-bar {
+      width: 100%; height: 6px; background: rgba(255,255,255,0.15);
+      border-radius: 999px; overflow: hidden;
+    }
+    .hero-progress-fill {
+      height: 100%; background: var(--green); border-radius: 999px;
+      transition: width 0.6s var(--ease), background 0.3s;
+    }
+    .hero-progress-msg {
+      margin-top: 10px; font-size: 13px;
+      color: rgba(255,255,255,0.75);
+    }
+    .hero-progress-msg.warning { color: #FFD966; }
+    .hero-progress-msg.danger { color: #FF8A7A; }
+
+    @media (max-width: 640px) {
+      .hero { padding: 28px 24px; grid-template-columns: 1fr; }
+      .hero-meta { align-items: flex-start; text-align: left; }
+      .hero-meta .row { justify-content: flex-start; }
+    }
+
+    /* ----- Stats strip ----- */
+    .strip {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      border: 1px solid var(--border); border-radius: 10px;
+      overflow: hidden; margin-bottom: 40px;
+    }
+    .strip-cell {
+      padding: 20px 22px;
+      border-right: 1px solid var(--border);
+    }
+    .strip-cell:last-child { border-right: none; }
+    .strip-label {
+      font-size: 12px; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;
+      margin-bottom: 8px;
+    }
+    .strip-value {
+      font-family: 'Geist Mono', ui-monospace, monospace;
+      font-size: 22px; font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .strip-value.muted { color: var(--text-3); font-weight: 500; }
+    .strip-value.pos { color: var(--green); }
+    .strip-value.neg { color: var(--red); }
+    @media (max-width: 860px) {
+      .strip { grid-template-columns: repeat(2, 1fr); }
+      .strip-cell:nth-child(2) { border-right: none; }
+      .strip-cell:nth-child(1), .strip-cell:nth-child(2) { border-bottom: 1px solid var(--border); }
+    }
+    @media (max-width: 540px) {
+      .strip { grid-template-columns: 1fr; }
+      .strip-cell { border-right: none; border-bottom: 1px solid var(--border); }
+      .strip-cell:last-child { border-bottom: none; }
+    }
+
+    /* ----- Tope bar ----- */
     .tope-bar {
-      display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
-      background: var(--card); padding: 12px 16px;
-      border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 16px;
+      display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+      padding: 16px 20px;
+      border: 1px solid var(--border); border-radius: 10px;
+      margin-bottom: 32px;
     }
-    .tope-bar label { font-size: 13px; color: var(--text-muted); }
-    .tope-bar input { width: 180px; }
-    .metrics {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px; margin-bottom: 16px;
-    }
-    .metric {
-      background: var(--card); padding: 16px;
-      border-radius: var(--radius); border: 1px solid var(--border);
-    }
-    .metric .label {
-      font-size: 12px; color: var(--text-muted);
-      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;
-    }
-    .metric .value {
-      font-family: 'DM Mono', monospace; font-size: 22px;
-      font-weight: 500; letter-spacing: -0.02em;
-    }
-    .metric .value.muted { color: var(--text-soft); }
-    .progress-card {
-      background: var(--card); padding: 16px;
-      border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 16px;
-    }
-    .progress-header {
-      display: flex; justify-content: space-between;
-      font-size: 13px; color: var(--text-muted); margin-bottom: 8px;
-    }
-    .progress-bar {
-      width: 100%; height: 12px; background: var(--border);
-      border-radius: 999px; overflow: hidden; margin-bottom: 8px;
-    }
-    .progress-fill {
-      height: 100%; background: var(--green);
-      transition: width 0.4s ease, background 0.3s;
-    }
-    .progress-message { font-size: 13px; color: var(--text-muted); }
-    .progress-message.warning { color: var(--yellow); font-weight: 500; }
-    .progress-message.danger { color: var(--red); font-weight: 500; }
-    .tipos {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 12px; margin-bottom: 24px;
-    }
+    .tope-bar label { font-size: 13px; color: var(--text-2); font-weight: 500; }
+    .tope-bar input { width: 200px; font-family: 'Geist Mono', ui-monospace, monospace; }
+
+    /* ----- Sections ----- */
     .section {
-      background: var(--card); padding: 20px;
-      border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 16px;
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 24px; margin-bottom: 24px;
     }
-    .section h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-    @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+    .section-head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; gap: 12px;
+    }
+    .section h2 {
+      font-size: 15px; font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .two-col {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 720px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ----- Tipos sub-strip ----- */
+    .tipos {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      border: 1px solid var(--border); border-radius: 10px;
+      overflow: hidden; margin-bottom: 32px;
+    }
+    .tipos .strip-cell { padding: 18px 22px; border-right: 1px solid var(--border); }
+    .tipos .strip-cell:last-child { border-right: none; }
+    @media (max-width: 640px) {
+      .tipos { grid-template-columns: 1fr; }
+      .tipos .strip-cell { border-right: none; border-bottom: 1px solid var(--border); }
+      .tipos .strip-cell:last-child { border-bottom: none; }
+    }
+
+    /* ----- Categorías ----- */
     .cat-row {
-      display: flex; align-items: center; gap: 12px;
-      padding: 10px 0; border-bottom: 1px solid var(--border);
+      display: grid; grid-template-columns: 1fr 2fr auto;
+      align-items: center; gap: 16px;
+      padding: 14px 0; border-bottom: 1px solid var(--border);
     }
     .cat-row:last-child { border-bottom: none; }
-    .cat-name { flex: 0 0 200px; font-size: 14px; }
-    .cat-bar-wrap { flex: 1; height: 8px; background: var(--border); border-radius: 999px; overflow: hidden; }
-    .cat-bar-fill { height: 100%; background: var(--accent); border-radius: 999px; transition: width 0.4s; }
+    .cat-name { font-size: 14px; color: var(--text); }
+    .cat-bar-wrap {
+      height: 4px; background: var(--surface-2); border-radius: 999px; overflow: hidden;
+    }
+    .cat-bar-fill {
+      height: 100%; background: var(--text); border-radius: 999px;
+      transition: width 0.6s var(--ease);
+    }
     .cat-amount {
-      flex: 0 0 auto; font-family: 'DM Mono', monospace;
-      font-size: 13px; text-align: right; min-width: 120px;
+      font-family: 'Geist Mono', ui-monospace, monospace;
+      font-size: 13px; font-weight: 500; letter-spacing: -0.01em;
+      min-width: 110px; text-align: right;
     }
-    @media (max-width: 600px) {
-      .cat-name { flex: 0 0 110px; font-size: 12px; }
-      .cat-amount { min-width: 90px; font-size: 12px; }
+    @media (max-width: 540px) {
+      .cat-row { grid-template-columns: 1fr auto; }
+      .cat-bar-wrap { display: none; }
     }
-    .chart-wrap { position: relative; height: 300px; }
+
+    .chart-wrap { position: relative; height: 280px; }
+
+    /* ----- Form ----- */
     .form-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
     }
-    .form-actions { display: flex; gap: 8px; margin-top: 12px; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); }
+    .form-actions { display: flex; gap: 8px; margin-top: 16px; }
+
+    /* ----- Table ----- */
+    .table-wrap { overflow-x: auto; margin: 0 -4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 14px 12px; border-bottom: 1px solid var(--border); }
     th {
-      font-weight: 500; color: var(--text-muted);
-      font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;
+      font-size: 11px; font-weight: 500; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      border-bottom: 1px solid var(--border);
     }
-    td.amount { font-family: 'DM Mono', monospace; text-align: right; }
-    td.actions { text-align: right; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: var(--surface); }
+    td.amount {
+      font-family: 'Geist Mono', ui-monospace, monospace;
+      text-align: right; font-weight: 500; letter-spacing: -0.01em;
+    }
+    td.actions { text-align: right; width: 1%; }
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 4px 10px; border-radius: 999px;
+      font-size: 12px; font-weight: 500; line-height: 1;
+    }
+    .badge.pagado { background: var(--green-bg); color: #00643A; }
+    .badge.pendiente { background: var(--amber-bg); color: #7A5A00; }
+    .badge.na { background: var(--surface-2); color: var(--text-2); }
+
     .btn-delete {
-      background: transparent; border: none; color: var(--text-muted);
-      cursor: pointer; padding: 4px 8px; font-size: 18px;
+      background: transparent; border: none; color: var(--text-3);
+      cursor: pointer; padding: 6px 10px; font-size: 18px;
+      height: auto; border-radius: 8px;
     }
-    .btn-delete:hover { color: var(--red); background: transparent; }
-    .table-wrap { overflow-x: auto; }
+    .btn-delete:hover { color: var(--red); background: var(--red-bg); }
+
     .empty-state {
-      text-align: center; padding: 32px;
-      color: var(--text-muted); font-size: 14px;
+      text-align: center; padding: 40px 24px;
+      color: var(--text-3); font-size: 14px;
     }
     .error-banner {
-      background: #FEE2E2; color: #991B1B;
-      padding: 12px 16px; border-radius: var(--radius);
-      margin-bottom: 16px; font-size: 14px;
+      background: var(--red-bg); color: #8A0F00;
+      padding: 14px 18px; border-radius: 10px;
+      margin-bottom: 24px; font-size: 14px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <header>
-      <div class="title-block">
-        <h1>Control de Gastos 2026</h1>
-        <p>Sincronizado con Notion · Mayo a Diciembre</p>
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="brand">
+        <span class="brand-mark">Gastos 2026</span>
+        <span class="brand-sub">Sincronizado con Notion</span>
       </div>
       <div class="controls">
-        <span class="status-badge loading" id="status">
-          <span class="status-dot"></span>
-          <span id="statusText">Conectando…</span>
+        <span class="pill loading" id="status">
+          <span class="dot"></span>
+          <span id="statusText">Conectando</span>
         </span>
         <select id="mesSelect">
           <option>Mayo 2026</option>
@@ -179,77 +319,89 @@
           <option>Noviembre 2026</option>
           <option>Diciembre 2026</option>
         </select>
-        <button id="syncBtn">↻ Sincronizar</button>
+        <button class="ghost" id="syncBtn">Sincronizar</button>
       </div>
-    </header>
+    </div>
 
     <div id="errorBox"></div>
 
+    <!-- Hero -->
+    <div class="hero">
+      <div>
+        <div class="hero-label" id="heroLabel">Mayo 2026 · Total gastado</div>
+        <div class="hero-number mono" id="heroTotal">$0</div>
+      </div>
+      <div class="hero-meta">
+        <div class="row"><span>Tope</span><strong id="heroTope">—</strong></div>
+        <div class="row"><span>Disponible</span><strong id="heroDisponible">—</strong></div>
+      </div>
+      <div class="hero-progress">
+        <div class="hero-progress-bar"><div class="hero-progress-fill" id="progressFill" style="width:0%"></div></div>
+        <div class="hero-progress-msg" id="progressMsg">Sin tope definido</div>
+      </div>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="strip">
+      <div class="strip-cell">
+        <div class="strip-label">N.º de gastos</div>
+        <div class="strip-value mono" id="numGastos">0</div>
+      </div>
+      <div class="strip-cell">
+        <div class="strip-label">Avance</div>
+        <div class="strip-value mono" id="progressPct">0%</div>
+      </div>
+      <div class="strip-cell">
+        <div class="strip-label">Tope mensual</div>
+        <div class="strip-value mono muted" id="topeDisplay">Sin definir</div>
+      </div>
+      <div class="strip-cell">
+        <div class="strip-label">Disponible</div>
+        <div class="strip-value mono muted" id="disponible">—</div>
+      </div>
+    </div>
+
+    <!-- Tope -->
     <div class="tope-bar">
-      <label>Tope mensual (COP$):</label>
+      <label>Tope mensual (COP$)</label>
       <input type="number" id="topeInput" placeholder="0" min="0">
       <button id="topeBtn">Aplicar</button>
     </div>
 
-    <div class="metrics">
-      <div class="metric">
-        <div class="label">Total gastado</div>
-        <div class="value mono" id="totalGastado">$0</div>
-      </div>
-      <div class="metric">
-        <div class="label">Tope del mes</div>
-        <div class="value mono muted" id="topeDisplay">Sin definir</div>
-      </div>
-      <div class="metric">
-        <div class="label">Disponible</div>
-        <div class="value mono muted" id="disponible">—</div>
-      </div>
-      <div class="metric">
-        <div class="label">N.º de gastos</div>
-        <div class="value mono" id="numGastos">0</div>
-      </div>
-    </div>
-
-    <div class="progress-card">
-      <div class="progress-header">
-        <span>Avance del presupuesto</span>
-        <span id="progressPct">0%</span>
-      </div>
-      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-      <div class="progress-message" id="progressMsg">COP $0 gastado · tope no definido</div>
-    </div>
-
+    <!-- Tipos -->
     <div class="tipos">
-      <div class="metric">
-        <div class="label">Gastos fijos</div>
-        <div class="value mono" id="fijos">$0</div>
+      <div class="strip-cell">
+        <div class="strip-label">Gastos fijos</div>
+        <div class="strip-value mono" id="fijos">$0</div>
       </div>
-      <div class="metric">
-        <div class="label">Variables</div>
-        <div class="value mono" id="variables">$0</div>
+      <div class="strip-cell">
+        <div class="strip-label">Variables</div>
+        <div class="strip-value mono" id="variables">$0</div>
       </div>
-      <div class="metric">
-        <div class="label">Ocasionales / Anuales</div>
-        <div class="value mono" id="ocasionales">$0</div>
+      <div class="strip-cell">
+        <div class="strip-label">Ocasionales / Anuales</div>
+        <div class="strip-value mono" id="ocasionales">$0</div>
       </div>
     </div>
 
+    <!-- Categorías + chart -->
     <div class="two-col">
       <div class="section">
-        <h2>Por categoría</h2>
+        <div class="section-head"><h2>Por categoría</h2></div>
         <div id="catList"><div class="empty-state">Cargando…</div></div>
       </div>
       <div class="section">
-        <h2>Distribución</h2>
+        <div class="section-head"><h2>Distribución</h2></div>
         <div class="chart-wrap"><canvas id="chart"></canvas></div>
       </div>
     </div>
 
+    <!-- Form -->
     <div class="section">
-      <h2>Registrar gasto en Notion</h2>
+      <div class="section-head"><h2>Registrar gasto en Notion</h2></div>
       <div class="form-grid">
         <input id="fGasto" placeholder="Nombre del gasto">
-        <input id="fMonto" type="number" placeholder="Monto (COP$)" min="0">
+        <input id="fMonto" type="number" placeholder="Monto (COP$)" min="0" class="mono">
         <select id="fCategoria">
           <option value="">Categoría</option>
           <option>🏠 Vivienda y Servicios</option>
@@ -280,15 +432,16 @@
         </select>
       </div>
       <div class="form-actions">
-        <button class="primary" id="saveBtn">+ Guardar en Notion</button>
-        <button id="clearBtn">Limpiar</button>
+        <button class="primary" id="saveBtn">Guardar en Notion</button>
+        <button class="ghost" id="clearBtn">Limpiar</button>
       </div>
     </div>
 
+    <!-- Tabla -->
     <div class="section">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-        <h2 style="margin:0;">Gastos del mes</h2>
-        <button id="csvBtn">Exportar CSV</button>
+      <div class="section-head">
+        <h2>Gastos del mes</h2>
+        <button class="ghost" id="csvBtn">Exportar CSV</button>
       </div>
       <div class="table-wrap">
         <table>
@@ -323,18 +476,18 @@
 
     function setStatus(kind, text) {
       const el = document.getElementById('status');
-      el.className = 'status-badge ' + kind;
+      el.className = 'pill ' + kind;
       document.getElementById('statusText').textContent = text;
     }
 
     function showError(msg) {
       const box = document.getElementById('errorBox');
       if (!msg) { box.innerHTML = ''; return; }
-      box.innerHTML = '<div class="error-banner">⚠️ ' + escapeHTML(msg) + '</div>';
+      box.innerHTML = '<div class="error-banner">' + escapeHTML(msg) + '</div>';
     }
 
     async function fetchGastos() {
-      setStatus('loading', 'Cargando…');
+      setStatus('loading', 'Cargando');
       showError('');
       try {
         const res = await fetch(API + '?mes=' + encodeURIComponent(state.mes));
@@ -351,6 +504,14 @@
       }
     }
 
+    function badgeFor(estado) {
+      const e = (estado || '').toLowerCase();
+      if (e.includes('pagado') || e.includes('✅')) return '<span class="badge pagado">Pagado</span>';
+      if (e.includes('pendiente') || e.includes('⏳')) return '<span class="badge pendiente">Pendiente</span>';
+      if (!e.trim()) return '<span class="badge na">—</span>';
+      return '<span class="badge na">' + escapeHTML(estado) + '</span>';
+    }
+
     function render() {
       const gastos = state.gastos;
       const total = gastos.reduce((s, g) => s + (g.monto || 0), 0);
@@ -359,23 +520,33 @@
       const pct = tope > 0 ? Math.min((total / tope) * 100, 100) : 0;
       const pctReal = tope > 0 ? (total / tope) * 100 : 0;
 
-      document.getElementById('totalGastado').textContent = COP.format(total);
+      document.getElementById('heroLabel').textContent = state.mes + ' · Total gastado';
+      document.getElementById('heroTotal').textContent = COP.format(total);
       document.getElementById('numGastos').textContent = gastos.length;
+      document.getElementById('progressPct').textContent = pctReal.toFixed(0) + '%';
 
       const topeDisplay = document.getElementById('topeDisplay');
       const dispDisplay = document.getElementById('disponible');
+      const heroTope = document.getElementById('heroTope');
+      const heroDisp = document.getElementById('heroDisponible');
+
       if (tope > 0) {
         topeDisplay.textContent = COP.format(tope);
         topeDisplay.classList.remove('muted');
         dispDisplay.textContent = COP.format(disponible);
         dispDisplay.classList.remove('muted');
-        dispDisplay.style.color = disponible < 0 ? 'var(--red)' : 'var(--text)';
+        dispDisplay.classList.toggle('neg', disponible < 0);
+        dispDisplay.classList.toggle('pos', disponible >= 0);
+        heroTope.textContent = COP.format(tope);
+        heroDisp.textContent = COP.format(disponible);
       } else {
         topeDisplay.textContent = 'Sin definir';
         topeDisplay.classList.add('muted');
         dispDisplay.textContent = '—';
         dispDisplay.classList.add('muted');
-        dispDisplay.style.color = '';
+        dispDisplay.classList.remove('neg', 'pos');
+        heroTope.textContent = '—';
+        heroDisp.textContent = '—';
       }
 
       document.getElementById('topeInput').value = tope || '';
@@ -383,19 +554,18 @@
       const fill = document.getElementById('progressFill');
       const msg = document.getElementById('progressMsg');
       fill.style.width = pct + '%';
-      document.getElementById('progressPct').textContent = pctReal.toFixed(0) + '%';
-      msg.className = 'progress-message';
+      msg.className = 'hero-progress-msg';
       if (tope === 0) {
-        fill.style.background = 'var(--text-soft)';
-        msg.textContent = COP.format(total) + ' gastado · tope no definido';
+        fill.style.background = 'rgba(255,255,255,0.35)';
+        msg.textContent = COP.format(total) + ' gastado · sin tope definido';
       } else if (pctReal >= 100) {
         fill.style.background = 'var(--red)';
         msg.classList.add('danger');
-        msg.textContent = '🚨 Excediste el tope por ' + COP.format(total - tope);
+        msg.textContent = 'Excediste el tope por ' + COP.format(total - tope);
       } else if (pctReal >= 80) {
-        fill.style.background = 'var(--yellow)';
+        fill.style.background = 'var(--amber)';
         msg.classList.add('warning');
-        msg.textContent = '⚠️ Cerca del tope · te quedan ' + COP.format(disponible);
+        msg.textContent = 'Cerca del tope · te quedan ' + COP.format(disponible);
       } else {
         fill.style.background = 'var(--green)';
         msg.textContent = COP.format(disponible) + ' disponibles este mes';
@@ -421,7 +591,7 @@
           const pctBar = maxCat > 0 ? (monto / maxCat * 100) : 0;
           return '<div class="cat-row"><div class="cat-name">' + escapeHTML(nombre) +
                  '</div><div class="cat-bar-wrap"><div class="cat-bar-fill" style="width:' + pctBar + '%"></div></div>' +
-                 '<div class="cat-amount">' + COP.format(monto) + '</div></div>';
+                 '<div class="cat-amount mono">' + COP.format(monto) + '</div></div>';
         }).join('');
       }
 
@@ -436,7 +606,7 @@
           '<tr><td>' + escapeHTML(g.gasto) + '</td>' +
           '<td>' + escapeHTML(g.categoria || '') + '</td>' +
           '<td>' + escapeHTML(g.tipo || '') + '</td>' +
-          '<td>' + escapeHTML(g.estado || '') + '</td>' +
+          '<td>' + badgeFor(g.estado) + '</td>' +
           '<td class="amount">' + COP.format(g.monto || 0) + '</td>' +
           '<td class="actions"><button class="btn-delete" data-id="' + g.id + '" title="Eliminar">×</button></td></tr>'
         ).join('');
@@ -450,7 +620,7 @@
       const ctx = document.getElementById('chart').getContext('2d');
       if (state.chart) state.chart.destroy();
       if (!entries.length) return;
-      const colors = ['#2563EB','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899','#06B6D4','#84CC16','#F97316'];
+      const colors = ['#000000','#545454','#8E8E8E','#00C16A','#F4B400','#E11900','#C4C4C4','#1A1A1A','#737373'];
       state.chart = new Chart(ctx, {
         type: 'doughnut',
         data: {
@@ -458,14 +628,23 @@
           datasets: [{
             data: entries.map(e => e[1]),
             backgroundColor: entries.map((_, i) => colors[i % colors.length]),
-            borderWidth: 0
+            borderWidth: 0,
+            spacing: 2
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          cutout: '64%',
           plugins: {
-            legend: { position: 'bottom', labels: { font: { family: 'DM Sans', size: 11 }, boxWidth: 12 } }
+            legend: {
+              position: 'bottom',
+              labels: {
+                font: { family: 'Geist', size: 12 },
+                color: '#545454',
+                boxWidth: 10, boxHeight: 10, padding: 12
+              }
+            }
           }
         }
       });
