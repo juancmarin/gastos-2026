@@ -190,6 +190,11 @@
       .strip { grid-template-columns: 1fr; }
       .strip-cell { border-right: none; border-bottom: 1px solid var(--border); }
       .strip-cell:last-child { border-bottom: none; }
+      .strip > .strip-cell {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 16px 22px; gap: 16px;
+      }
+      .strip > .strip-cell .strip-label { margin-bottom: 0; }
     }
 
     /* ----- Tope bar ----- */
@@ -236,8 +241,13 @@
     .tipos .strip-cell:last-child { border-right: none; }
     @media (max-width: 640px) {
       .tipos { grid-template-columns: 1fr; }
-      .tipos .strip-cell { border-right: none; border-bottom: 1px solid var(--border); }
+      .tipos .strip-cell {
+        border-right: none; border-bottom: 1px solid var(--border);
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 16px 22px; gap: 16px;
+      }
       .tipos .strip-cell:last-child { border-bottom: none; }
+      .tipos .strip-cell .strip-label { margin-bottom: 0; }
     }
 
     /* ----- Categorías ----- */
