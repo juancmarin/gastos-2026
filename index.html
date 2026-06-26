@@ -360,6 +360,47 @@
       </div>
     </div>
 
+    <!-- Form -->
+    <div class="section">
+      <div class="section-head"><h2>Registrar gasto en Notion</h2></div>
+      <div class="form-grid">
+        <input id="fGasto" placeholder="Nombre del gasto">
+        <input id="fMonto" type="number" placeholder="Monto (COP$)" min="0" class="mono">
+        <select id="fCategoria">
+          <option value="">Categoría</option>
+          <option>🏠 Vivienda y Servicios</option>
+          <option>🚗 Transporte y Vehículo</option>
+          <option>🍽️ Alimentación</option>
+          <option>📱 Tecnología y Suscripciones</option>
+          <option>🏥 Salud y Bienestar</option>
+          <option>👩‍💼 Personal y Hogar</option>
+          <option>💳 Financiero</option>
+          <option>🎭 Ocio y Entretenimiento</option>
+          <option>⚠️ Imprevistos</option>
+        </select>
+        <select id="fTipo">
+          <option value="">Tipo</option>
+          <option>Fijo</option>
+          <option>Variable</option>
+          <option>Ocasional</option>
+          <option>Anual</option>
+        </select>
+        <input id="fSubcategoria" placeholder="Subcategoría (opcional)">
+        <select id="fMetodo">
+          <option value="">Método de pago</option>
+          <option>Efectivo</option>
+          <option>Tarjeta Débito</option>
+          <option>Tarjeta Crédito</option>
+          <option>Transferencia</option>
+          <option>PSE</option>
+        </select>
+      </div>
+      <div class="form-actions">
+        <button class="primary" id="saveBtn">Guardar en Notion</button>
+        <button class="ghost" id="clearBtn">Limpiar</button>
+      </div>
+    </div>
+
     <!-- Stats strip -->
     <div class="strip">
       <div class="strip-cell">
@@ -412,47 +453,6 @@
       <div class="section">
         <div class="section-head"><h2>Distribución</h2></div>
         <div class="chart-wrap"><canvas id="chart"></canvas></div>
-      </div>
-    </div>
-
-    <!-- Form -->
-    <div class="section">
-      <div class="section-head"><h2>Registrar gasto en Notion</h2></div>
-      <div class="form-grid">
-        <input id="fGasto" placeholder="Nombre del gasto">
-        <input id="fMonto" type="number" placeholder="Monto (COP$)" min="0" class="mono">
-        <select id="fCategoria">
-          <option value="">Categoría</option>
-          <option>🏠 Vivienda y Servicios</option>
-          <option>🚗 Transporte y Vehículo</option>
-          <option>🍽️ Alimentación</option>
-          <option>📱 Tecnología y Suscripciones</option>
-          <option>🏥 Salud y Bienestar</option>
-          <option>👩‍💼 Personal y Hogar</option>
-          <option>💳 Financiero</option>
-          <option>🎭 Ocio y Entretenimiento</option>
-          <option>⚠️ Imprevistos</option>
-        </select>
-        <select id="fTipo">
-          <option value="">Tipo</option>
-          <option>Fijo</option>
-          <option>Variable</option>
-          <option>Ocasional</option>
-          <option>Anual</option>
-        </select>
-        <input id="fSubcategoria" placeholder="Subcategoría (opcional)">
-        <select id="fMetodo">
-          <option value="">Método de pago</option>
-          <option>Efectivo</option>
-          <option>Tarjeta Débito</option>
-          <option>Tarjeta Crédito</option>
-          <option>Transferencia</option>
-          <option>PSE</option>
-        </select>
-      </div>
-      <div class="form-actions">
-        <button class="primary" id="saveBtn">Guardar en Notion</button>
-        <button class="ghost" id="clearBtn">Limpiar</button>
       </div>
     </div>
 
