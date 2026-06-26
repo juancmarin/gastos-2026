@@ -1,626 +1,553 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Control de Gastos 2026</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<style>
-  :root {
-    --bg: #F7F6F2;
-    --surface: #FFFFFF;
-    --surface2: #F0EFE9;
-    --border: #E3E1D8;
-    --text: #1A1916;
-    --text2: #6B6960;
-    --text3: #9C9A91;
-    --green: #3B6D11;
-    --green-bg: #EAF3DE;
-    --amber: #854F0B;
-    --amber-bg: #FAEEDA;
-    --red: #A32D2D;
-    --red-bg: #FCEBEB;
-    --accent: #1A1916;
-    --radius: 10px;
-    --radius-lg: 14px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1.5rem; }
-  .container { max-width: 860px; margin: 0 auto; }
-  .header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
-  .header-left h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
-  .header-left p { font-size: 13px; color: var(--text2); margin-top: 3px; }
-  .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .sync-status { font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 99px; display: flex; align-items: center; gap: 5px; }
-  .sync-status.ok { background: var(--green-bg); color: var(--green); }
-  .sync-status.loading { background: var(--amber-bg); color: var(--amber); }
-  .sync-status.error { background: var(--red-bg); color: var(--red); }
-  .sync-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-  .sync-status.ok .sync-dot { background: var(--green); }
-  .sync-status.loading .sync-dot { background: var(--amber); animation: pulse 1s infinite; }
-  .sync-status.error .sync-dot { background: var(--red); }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  select {
-    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
-    padding: 8px 28px 8px 14px; border-radius: var(--radius);
-    border: 1.5px solid var(--border); background: var(--surface); color: var(--text);
-    cursor: pointer; appearance: none; -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236B6960'/%3E%3C/svg%3E");
-    background-repeat: no-repeat; background-position: right 10px center;
-  }
-  select:focus { outline: none; border-color: var(--accent); }
-  .tope-row {
-    background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-lg);
-    padding: 1rem 1.25rem; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 1.25rem;
-  }
-  .tope-row label { font-size: 13px; color: var(--text2); white-space: nowrap; font-weight: 500; }
-  .tope-row input {
-    font-family: 'DM Mono', monospace; font-size: 14px; padding: 7px 12px;
-    border-radius: var(--radius); border: 1.5px solid var(--border);
-    background: var(--bg); color: var(--text); width: 190px; transition: border-color 0.15s;
-  }
-  .tope-row input:focus { outline: none; border-color: var(--accent); }
-  .btn {
-    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
-    padding: 7px 16px; border-radius: var(--radius); border: 1.5px solid var(--accent);
-    background: var(--accent); color: #fff; cursor: pointer; transition: opacity 0.15s;
-  }
-  .btn:hover { opacity: 0.85; }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .btn.secondary { background: var(--surface); color: var(--text); border-color: var(--border); }
-  .btn.secondary:hover { background: var(--bg); }
-  .alert { border-radius: var(--radius); padding: 10px 16px; font-size: 13px; font-weight: 500; margin-bottom: 1.25rem; display: none; align-items: center; gap: 8px; }
-  .alert.show { display: flex; }
-  .alert.warning { background: var(--amber-bg); color: var(--amber); border: 1px solid #EF9F27; }
-  .alert.danger { background: var(--red-bg); color: var(--red); border: 1px solid #E24B4A; }
-  .alert-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-  .alert.warning .alert-dot { background: var(--amber); }
-  .alert.danger .alert-dot { background: var(--red); }
-  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 1.25rem; }
-  .metric { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.2rem; }
-  .metric-label { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
-  .metric-value { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; color: var(--text); }
-  .metric-value.ok { color: var(--green); }
-  .metric-value.warning { color: var(--amber); }
-  .metric-value.danger { color: var(--red); }
-  .progress-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
-  .progress-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
-  .progress-header span { font-size: 13px; color: var(--text2); font-weight: 500; }
-  .pct-label { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; }
-  .pct-label.ok { color: var(--green); }
-  .pct-label.warning { color: var(--amber); }
-  .pct-label.danger { color: var(--red); }
-  .track { height: 8px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
-  .fill { height: 100%; border-radius: 99px; transition: width 0.5s cubic-bezier(.4,0,.2,1); }
-  .fill.ok { background: #639922; }
-  .fill.warning { background: #BA7517; }
-  .fill.danger { background: #E24B4A; }
-  .progress-footer { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
-  .tipo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem; }
-  .tipo-card { background: var(--surface2); border-radius: var(--radius); padding: 10px 14px; }
-  .tipo-label { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
-  .tipo-val { font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 500; color: var(--text); }
-  .section { margin-bottom: 1.25rem; }
-  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .section-title { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; }
-  .card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; }
-  .cat-list { display: flex; flex-direction: column; gap: 12px; }
-  .cat-row { display: grid; grid-template-columns: 170px 1fr 120px; align-items: center; gap: 14px; }
-  .cat-name { font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .cat-track { height: 5px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
-  .cat-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
-  .cat-amount { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2); text-align: right; }
-  .cat-empty { font-size: 13px; color: var(--text3); text-align: center; padding: 1.5rem 0; }
-  .chart-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: center; }
-  .chart-wrap { position: relative; height: 200px; }
-  .legend { display: flex; flex-direction: column; gap: 8px; }
-  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text2); }
-  .legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
-  .legend-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .legend-val { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .form-group { display: flex; flex-direction: column; gap: 5px; }
-  .form-group label { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
-  .form-group input, .form-group select {
-    font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 8px 12px;
-    border-radius: var(--radius); border: 1.5px solid var(--border);
-    background: var(--bg); color: var(--text); transition: border-color 0.15s;
-  }
-  .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); }
-  .form-actions { display: flex; gap: 8px; margin-top: 14px; align-items: center; }
-  .form-feedback { font-size: 12px; color: var(--text3); }
-  .gastos-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .gastos-table th { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; padding: 0 8px 10px; text-align: left; border-bottom: 1.5px solid var(--border); }
-  .gastos-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: middle; }
-  .gastos-table tr:last-child td { border-bottom: none; }
-  .gastos-table td:first-child { color: var(--text); font-weight: 500; }
-  .gastos-table td.mono { font-family: 'DM Mono', monospace; font-size: 12px; }
-  .tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
-  .tag.fijo { background: #E6F1FB; color: #185FA5; }
-  .tag.variable { background: #FAEEDA; color: #854F0B; }
-  .tag.ocasional { background: var(--surface2); color: var(--text3); }
-  .tag.anual { background: #EAF3DE; color: #3B6D11; }
-  .del-btn { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 14px; padding: 2px 6px; border-radius: 4px; }
-  .del-btn:hover { background: var(--red-bg); color: var(--red); }
-  .empty-table { text-align: center; color: var(--text3); font-size: 13px; padding: 2rem 0; }
-  .skeleton { background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 4px; height: 14px; }
-  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-  .divider { border: none; border-top: 1.5px solid var(--border); margin: 1.25rem 0; }
-  @media (max-width: 600px) {
-    .cat-row { grid-template-columns: 120px 1fr 90px; }
-    .chart-layout { grid-template-columns: 1fr; }
-    .form-grid { grid-template-columns: 1fr; }
-    .tipo-grid { grid-template-columns: 1fr; }
-    .metrics { grid-template-columns: 1fr 1fr; }
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Gastos 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #FAF9F6;
+      --card: #FFFFFF;
+      --text: #1A1A1A;
+      --text-muted: #6B7280;
+      --text-soft: #9CA3AF;
+      --border: #E5E7EB;
+      --accent: #2563EB;
+      --green: #10B981;
+      --yellow: #F59E0B;
+      --red: #EF4444;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 24px 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .mono { font-family: 'DM Mono', monospace; }
+    header {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 16px; margin-bottom: 24px;
+    }
+    .title-block h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+    .title-block p { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
+    .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500;
+    }
+    .status-badge.loading { background: #FEF3C7; color: #92400E; }
+    .status-badge.ok { background: #D1FAE5; color: #065F46; }
+    .status-badge.error { background: #FEE2E2; color: #991B1B; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    select, input, button {
+      font-family: inherit; font-size: 14px; padding: 8px 14px;
+      border: 1px solid var(--border); border-radius: 8px;
+      background: var(--card); color: var(--text);
+    }
+    button { cursor: pointer; font-weight: 500; transition: all 0.15s; }
+    button:hover { background: #F3F4F6; }
+    button.primary { background: var(--text); color: white; border-color: var(--text); }
+    button.primary:hover { opacity: 0.9; background: var(--text); }
+    .tope-bar {
+      display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+      background: var(--card); padding: 12px 16px;
+      border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 16px;
+    }
+    .tope-bar label { font-size: 13px; color: var(--text-muted); }
+    .tope-bar input { width: 180px; }
+    .metrics {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px; margin-bottom: 16px;
+    }
+    .metric {
+      background: var(--card); padding: 16px;
+      border-radius: var(--radius); border: 1px solid var(--border);
+    }
+    .metric .label {
+      font-size: 12px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;
+    }
+    .metric .value {
+      font-family: 'DM Mono', monospace; font-size: 22px;
+      font-weight: 500; letter-spacing: -0.02em;
+    }
+    .metric .value.muted { color: var(--text-soft); }
+    .progress-card {
+      background: var(--card); padding: 16px;
+      border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 16px;
+    }
+    .progress-header {
+      display: flex; justify-content: space-between;
+      font-size: 13px; color: var(--text-muted); margin-bottom: 8px;
+    }
+    .progress-bar {
+      width: 100%; height: 12px; background: var(--border);
+      border-radius: 999px; overflow: hidden; margin-bottom: 8px;
+    }
+    .progress-fill {
+      height: 100%; background: var(--green);
+      transition: width 0.4s ease, background 0.3s;
+    }
+    .progress-message { font-size: 13px; color: var(--text-muted); }
+    .progress-message.warning { color: var(--yellow); font-weight: 500; }
+    .progress-message.danger { color: var(--red); font-weight: 500; }
+    .tipos {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px; margin-bottom: 24px;
+    }
+    .section {
+      background: var(--card); padding: 20px;
+      border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 16px;
+    }
+    .section h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+    .cat-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .cat-row:last-child { border-bottom: none; }
+    .cat-name { flex: 0 0 200px; font-size: 14px; }
+    .cat-bar-wrap { flex: 1; height: 8px; background: var(--border); border-radius: 999px; overflow: hidden; }
+    .cat-bar-fill { height: 100%; background: var(--accent); border-radius: 999px; transition: width 0.4s; }
+    .cat-amount {
+      flex: 0 0 auto; font-family: 'DM Mono', monospace;
+      font-size: 13px; text-align: right; min-width: 120px;
+    }
+    @media (max-width: 600px) {
+      .cat-name { flex: 0 0 110px; font-size: 12px; }
+      .cat-amount { min-width: 90px; font-size: 12px; }
+    }
+    .chart-wrap { position: relative; height: 300px; }
+    .form-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;
+    }
+    .form-actions { display: flex; gap: 8px; margin-top: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); }
+    th {
+      font-weight: 500; color: var(--text-muted);
+      font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    td.amount { font-family: 'DM Mono', monospace; text-align: right; }
+    td.actions { text-align: right; }
+    .btn-delete {
+      background: transparent; border: none; color: var(--text-muted);
+      cursor: pointer; padding: 4px 8px; font-size: 18px;
+    }
+    .btn-delete:hover { color: var(--red); background: transparent; }
+    .table-wrap { overflow-x: auto; }
+    .empty-state {
+      text-align: center; padding: 32px;
+      color: var(--text-muted); font-size: 14px;
+    }
+    .error-banner {
+      background: #FEE2E2; color: #991B1B;
+      padding: 12px 16px; border-radius: var(--radius);
+      margin-bottom: 16px; font-size: 14px;
+    }
+  </style>
 </head>
 <body>
-<div class="container">
- 
-  <div class="header">
-    <div class="header-left">
-      <h1>Control de Gastos 2026</h1>
-      <p>Sincronizado con Notion &mdash; Mayo a Diciembre</p>
-    </div>
-    <div class="header-right">
-      <div class="sync-status loading" id="syncStatus">
-        <div class="sync-dot"></div>
-        <span id="syncLabel">Conectando...</span>
+  <div class="container">
+    <header>
+      <div class="title-block">
+        <h1>Control de Gastos 2026</h1>
+        <p>Sincronizado con Notion · Mayo a Diciembre</p>
       </div>
-      <select id="mesSelect">
-        <option value="Mayo 2026">Mayo 2026</option>
-        <option value="Junio 2026">Junio 2026</option>
-        <option value="Julio 2026">Julio 2026</option>
-        <option value="Agosto 2026">Agosto 2026</option>
-        <option value="Septiembre 2026">Septiembre 2026</option>
-        <option value="Octubre 2026">Octubre 2026</option>
-        <option value="Noviembre 2026">Noviembre 2026</option>
-        <option value="Diciembre 2026">Diciembre 2026</option>
-      </select>
-      <button class="btn secondary" onclick="cargarDesdeNotion()" id="btnRefresh">↻ Sincronizar</button>
+      <div class="controls">
+        <span class="status-badge loading" id="status">
+          <span class="status-dot"></span>
+          <span id="statusText">Conectando…</span>
+        </span>
+        <select id="mesSelect">
+          <option>Mayo 2026</option>
+          <option>Junio 2026</option>
+          <option>Julio 2026</option>
+          <option>Agosto 2026</option>
+          <option>Septiembre 2026</option>
+          <option>Octubre 2026</option>
+          <option>Noviembre 2026</option>
+          <option>Diciembre 2026</option>
+        </select>
+        <button id="syncBtn">↻ Sincronizar</button>
+      </div>
+    </header>
+
+    <div id="errorBox"></div>
+
+    <div class="tope-bar">
+      <label>Tope mensual (COP$):</label>
+      <input type="number" id="topeInput" placeholder="0" min="0">
+      <button id="topeBtn">Aplicar</button>
     </div>
-  </div>
- 
-  <div class="tope-row">
-    <label>Tope mensual (COP$)</label>
-    <input type="number" id="topeInput" placeholder="Ej: 8000000" step="100000" />
-    <button class="btn" onclick="setTope()">Aplicar tope</button>
-  </div>
- 
-  <div class="alert" id="alertBox">
-    <div class="alert-dot"></div>
-    <span id="alertMsg"></span>
-  </div>
- 
-  <div class="metrics">
-    <div class="metric"><div class="metric-label">Total gastado</div><div class="metric-value" id="mTotal">$0</div></div>
-    <div class="metric"><div class="metric-label">Tope del mes</div><div class="metric-value" id="mTope">Sin definir</div></div>
-    <div class="metric"><div class="metric-label">Disponible</div><div class="metric-value" id="mDisp">—</div></div>
-    <div class="metric"><div class="metric-label">N.º de gastos</div><div class="metric-value" id="mCount">0</div></div>
-  </div>
- 
-  <div class="progress-card">
-    <div class="progress-header">
-      <span>Avance del presupuesto</span>
-      <span class="pct-label ok" id="pctLabel">0%</span>
-    </div>
-    <div class="track"><div class="fill ok" id="fillBar" style="width:0%"></div></div>
-    <div class="progress-footer">
-      <span id="pfGastado">COP $0 gastado</span>
-      <span id="pfTope">— tope no definido</span>
-    </div>
-  </div>
- 
-  <div class="tipo-grid">
-    <div class="tipo-card"><div class="tipo-label">Gastos fijos</div><div class="tipo-val" id="tFijo">$0</div></div>
-    <div class="tipo-card"><div class="tipo-label">Variables</div><div class="tipo-val" id="tVar">$0</div></div>
-    <div class="tipo-card"><div class="tipo-label">Ocasionales / Anuales</div><div class="tipo-val" id="tOcas">$0</div></div>
-  </div>
- 
-  <hr class="divider">
- 
-  <div class="section">
-    <div class="section-header"><div class="section-title">Por categoría</div></div>
-    <div class="card"><div class="cat-list" id="catList"><div class="cat-empty">Cargando datos de Notion...</div></div></div>
-  </div>
- 
-  <div class="section">
-    <div class="section-header"><div class="section-title">Distribución</div></div>
-    <div class="card">
-      <div class="chart-layout">
-        <div class="chart-wrap"><canvas id="donut" role="img" aria-label="Gráfico de distribución de gastos por categoría">Distribución de gastos por categoría.</canvas></div>
-        <div class="legend" id="legendBox"><span style="font-size:12px;color:var(--text3)">Cargando...</span></div>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="label">Total gastado</div>
+        <div class="value mono" id="totalGastado">$0</div>
+      </div>
+      <div class="metric">
+        <div class="label">Tope del mes</div>
+        <div class="value mono muted" id="topeDisplay">Sin definir</div>
+      </div>
+      <div class="metric">
+        <div class="label">Disponible</div>
+        <div class="value mono muted" id="disponible">—</div>
+      </div>
+      <div class="metric">
+        <div class="label">N.º de gastos</div>
+        <div class="value mono" id="numGastos">0</div>
       </div>
     </div>
-  </div>
- 
-  <hr class="divider">
- 
-  <div class="section">
-    <div class="section-header"><div class="section-title">Registrar gasto en Notion</div></div>
-    <div class="card">
+
+    <div class="progress-card">
+      <div class="progress-header">
+        <span>Avance del presupuesto</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="progress-message" id="progressMsg">COP $0 gastado · tope no definido</div>
+    </div>
+
+    <div class="tipos">
+      <div class="metric">
+        <div class="label">Gastos fijos</div>
+        <div class="value mono" id="fijos">$0</div>
+      </div>
+      <div class="metric">
+        <div class="label">Variables</div>
+        <div class="value mono" id="variables">$0</div>
+      </div>
+      <div class="metric">
+        <div class="label">Ocasionales / Anuales</div>
+        <div class="value mono" id="ocasionales">$0</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="section">
+        <h2>Por categoría</h2>
+        <div id="catList"><div class="empty-state">Cargando…</div></div>
+      </div>
+      <div class="section">
+        <h2>Distribución</h2>
+        <div class="chart-wrap"><canvas id="chart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Registrar gasto en Notion</h2>
       <div class="form-grid">
-        <div class="form-group">
-          <label>Nombre del gasto</label>
-          <input type="text" id="fNombre" placeholder="Ej: Mercado Éxito" />
-        </div>
-        <div class="form-group">
-          <label>Monto (COP$)</label>
-          <input type="number" id="fMonto" placeholder="Ej: 350000" step="1000" />
-        </div>
-        <div class="form-group">
-          <label>Categoría</label>
-          <select id="fCat">
-            <option value="🏠 Vivienda y Servicios">Vivienda y Servicios</option>
-            <option value="🚗 Transporte y Vehículo">Transporte y Vehículo</option>
-            <option value="🍽️ Alimentación">Alimentación</option>
-            <option value="📱 Tecnología y Suscripciones">Tecnología y Suscripciones</option>
-            <option value="🏥 Salud y Bienestar">Salud y Bienestar</option>
-            <option value="👩‍💼 Personal y Hogar">Personal y Hogar</option>
-            <option value="💳 Financiero">Financiero</option>
-            <option value="🎭 Ocio y Entretenimiento">Ocio y Entretenimiento</option>
-            <option value="⚠️ Imprevistos">Imprevistos</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Tipo</label>
-          <select id="fTipo">
-            <option value="Fijo">Fijo</option>
-            <option value="Variable">Variable</option>
-            <option value="Ocasional">Ocasional</option>
-            <option value="Anual">Anual</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Subcategoría (opcional)</label>
-          <input type="text" id="fSubcat" placeholder="Ej: Mercado" />
-        </div>
-        <div class="form-group">
-          <label>Método de pago</label>
-          <select id="fMetodo">
-            <option value="Efectivo">Efectivo</option>
-            <option value="Tarjeta Débito">Tarjeta Débito</option>
-            <option value="Tarjeta Crédito">Tarjeta Crédito</option>
-            <option value="Transferencia">Transferencia</option>
-            <option value="PSE">PSE</option>
-          </select>
-        </div>
+        <input id="fGasto" placeholder="Nombre del gasto">
+        <input id="fMonto" type="number" placeholder="Monto (COP$)" min="0">
+        <select id="fCategoria">
+          <option value="">Categoría</option>
+          <option>🏠 Vivienda y Servicios</option>
+          <option>🚗 Transporte y Vehículo</option>
+          <option>🍽️ Alimentación</option>
+          <option>📱 Tecnología y Suscripciones</option>
+          <option>🏥 Salud y Bienestar</option>
+          <option>👩‍💼 Personal y Hogar</option>
+          <option>💳 Financiero</option>
+          <option>🎭 Ocio y Entretenimiento</option>
+          <option>⚠️ Imprevistos</option>
+        </select>
+        <select id="fTipo">
+          <option value="">Tipo</option>
+          <option>Fijo</option>
+          <option>Variable</option>
+          <option>Ocasional</option>
+          <option>Anual</option>
+        </select>
+        <input id="fSubcategoria" placeholder="Subcategoría (opcional)">
+        <select id="fMetodo">
+          <option value="">Método de pago</option>
+          <option>Efectivo</option>
+          <option>Tarjeta Débito</option>
+          <option>Tarjeta Crédito</option>
+          <option>Transferencia</option>
+          <option>PSE</option>
+        </select>
       </div>
       <div class="form-actions">
-        <button class="btn" onclick="guardarEnNotion()" id="btnGuardar">+ Guardar en Notion</button>
-        <button class="btn secondary" onclick="limpiarForm()">Limpiar</button>
-        <span class="form-feedback" id="formFeedback"></span>
+        <button class="primary" id="saveBtn">+ Guardar en Notion</button>
+        <button id="clearBtn">Limpiar</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h2 style="margin:0;">Gastos del mes</h2>
+        <button id="csvBtn">Exportar CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Gasto</th>
+              <th>Categoría</th>
+              <th>Tipo</th>
+              <th>Estado</th>
+              <th style="text-align:right;">Monto</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="6" class="empty-state">Cargando desde Notion…</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
- 
-  <div class="section">
-    <div class="section-header">
-      <div class="section-title">Gastos del mes</div>
-      <button class="btn secondary" onclick="exportarCSV()" style="font-size:11px;padding:4px 10px;">Exportar CSV</button>
-    </div>
-    <div class="card" style="overflow-x:auto;">
-      <table class="gastos-table">
-        <thead>
-          <tr>
-            <th>Gasto</th>
-            <th>Categoría</th>
-            <th>Tipo</th>
-            <th>Estado</th>
-            <th style="text-align:right;">Monto</th>
-          </tr>
-        </thead>
-        <tbody id="gastosBody">
-          <tr><td colspan="5" class="empty-table">Cargando desde Notion...</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
- 
-</div>
- 
-<script>
-const NOTION_TOKEN = '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';
-const DATABASE_ID = '6f3d3671df04410082601470203c5af8';
-const PROXY = 'https://api.allorigins.win/raw?url=';
- 
-const CAT_COLORS = {
-  '🏠 Vivienda y Servicios': '#378ADD',
-  '🚗 Transporte y Vehículo': '#BA7517',
-  '🍽️ Alimentación': '#639922',
-  '📱 Tecnología y Suscripciones': '#7F77DD',
-  '🏥 Salud y Bienestar': '#D4537E',
-  '👩‍💼 Personal y Hogar': '#1D9E75',
-  '💳 Financiero': '#E24B4A',
-  '🎭 Ocio y Entretenimiento': '#D85A30',
-  '⚠️ Imprevistos': '#888780'
-};
- 
-let gastos = [];
-let chart = null;
-let topes = JSON.parse(localStorage.getItem('topes2026') || '{}');
- 
-function cop(n) {
-  return 'COP $' + Math.round(n).toLocaleString('es-CO');
-}
- 
-function getMes() { return document.getElementById('mesSelect').value; }
- 
-function setSyncStatus(state, msg) {
-  const el = document.getElementById('syncStatus');
-  const label = document.getElementById('syncLabel');
-  el.className = 'sync-status ' + state;
-  label.textContent = msg;
-}
- 
-function setTope() {
-  const v = parseFloat(document.getElementById('topeInput').value);
-  if (!isNaN(v) && v > 0) {
-    topes[getMes()] = v;
-    localStorage.setItem('topes2026', JSON.stringify(topes));
-    render();
-  }
-}
- 
-async function notionRequest(method, endpoint, body) {
-  const url = PROXY + encodeURIComponent('https://api.notion.com/v1/' + endpoint);
-  const res = await fetch(url, {
-    method,
-    headers: {
-      'Authorization': 'Bearer ' + NOTION_TOKEN,
-      'Content-Type': 'application/json',
-      'Notion-Version': '2022-06-28'
-    },
-    body: body ? JSON.stringify(body) : undefined
-  });
-  return res.json();
-}
- 
-async function cargarDesdeNotion() {
-  setSyncStatus('loading', 'Sincronizando...');
-  document.getElementById('btnRefresh').disabled = true;
-  try {
-    const mes = getMes();
-    const data = await notionRequest('POST', 'databases/' + DATABASE_ID + '/query', {
-      filter: { property: 'Mes', select: { equals: mes } },
-      page_size: 100
-    });
- 
-    if (data.object === 'error') throw new Error(data.message);
- 
-    gastos = (data.results || []).map(p => {
-      const props = p.properties;
-      return {
-        id: p.id,
-        nombre: props['Gasto']?.title?.[0]?.plain_text || '—',
-        monto: props['Monto']?.number || 0,
-        cat: props['Categoría']?.select?.name || '—',
-        tipo: props['Tipo de Gasto']?.select?.name || '—',
-        estado: props['Estado']?.select?.name || '—',
-        subcat: props['Subcategoría']?.select?.name || '',
-        metodo: props['Método de Pago']?.select?.name || ''
-      };
-    });
- 
-    setSyncStatus('ok', 'Sincronizado ✓');
-    render();
-  } catch (e) {
-    setSyncStatus('error', 'Error de conexión');
-    console.error(e);
-  }
-  document.getElementById('btnRefresh').disabled = false;
-}
- 
-async function guardarEnNotion() {
-  const nombre = document.getElementById('fNombre').value.trim();
-  const monto = parseFloat(document.getElementById('fMonto').value);
-  const cat = document.getElementById('fCat').value;
-  const tipo = document.getElementById('fTipo').value;
-  const subcat = document.getElementById('fSubcat').value.trim();
-  const metodo = document.getElementById('fMetodo').value;
-  const mes = getMes();
- 
-  if (!nombre || isNaN(monto) || monto <= 0) {
-    document.getElementById('formFeedback').textContent = 'Completa nombre y monto.';
-    return;
-  }
- 
-  const btn = document.getElementById('btnGuardar');
-  const feedback = document.getElementById('formFeedback');
-  btn.disabled = true;
-  btn.textContent = 'Guardando...';
-  feedback.textContent = '';
- 
-  const properties = {
-    'Gasto': { title: [{ text: { content: nombre } }] },
-    'Monto': { number: monto },
-    'Categoría': { select: { name: cat } },
-    'Tipo de Gasto': { select: { name: tipo } },
-    'Mes': { select: { name: mes } },
-    'Estado': { select: { name: '⏳ Pendiente' } },
-    'Método de Pago': { select: { name: metodo } }
-  };
- 
-  if (subcat) properties['Subcategoría'] = { select: { name: subcat } };
- 
-  try {
-    const res = await notionRequest('POST', 'pages', {
-      parent: { database_id: DATABASE_ID },
-      properties
-    });
- 
-    if (res.object === 'error') throw new Error(res.message);
- 
-    feedback.textContent = '✓ Guardado en Notion';
-    feedback.style.color = 'var(--green)';
-    limpiarForm();
-    await cargarDesdeNotion();
-  } catch (e) {
-    feedback.textContent = 'Error al guardar: ' + e.message;
-    feedback.style.color = 'var(--red)';
-  }
- 
-  btn.disabled = false;
-  btn.textContent = '+ Guardar en Notion';
-}
- 
-function limpiarForm() {
-  document.getElementById('fNombre').value = '';
-  document.getElementById('fMonto').value = '';
-  document.getElementById('fSubcat').value = '';
-  setTimeout(() => { document.getElementById('formFeedback').textContent = ''; }, 3000);
-}
- 
-function exportarCSV() {
-  if (!gastos.length) return;
-  const mes = getMes();
-  const rows = [['Gasto','Categoría','Tipo','Estado','Monto COP']];
-  gastos.forEach(g => rows.push([g.nombre, g.cat, g.tipo, g.estado, g.monto]));
-  const csv = rows.map(r => r.join(',')).join('\n');
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = 'gastos-' + mes.replace(' ','_') + '.csv';
-  a.click();
-}
- 
-function render() {
-  const mes = getMes();
-  const tope = topes[mes] || 0;
-  const pagados = gastos.filter(g => g.estado !== '❌ No aplica este mes');
-  const total = pagados.reduce((s, g) => s + g.monto, 0);
- 
-  const topeInput = document.getElementById('topeInput');
-  if (tope > 0 && !topeInput.value) topeInput.value = tope;
- 
-  document.getElementById('mTotal').textContent = cop(total);
-  document.getElementById('mCount').textContent = pagados.length;
-  document.getElementById('pfGastado').textContent = cop(total) + ' gastado';
- 
-  if (tope > 0) {
-    document.getElementById('mTope').textContent = cop(tope);
-    const disp = tope - total;
-    const dispEl = document.getElementById('mDisp');
-    dispEl.textContent = cop(Math.abs(disp));
-    dispEl.className = 'metric-value ' + (disp < 0 ? 'danger' : disp < tope * 0.2 ? 'warning' : 'ok');
-    document.getElementById('pfTope').textContent = cop(tope) + ' tope';
- 
-    const pct = Math.min((total / tope) * 100, 100);
-    const rawPct = Math.round((total / tope) * 100);
-    const status = rawPct >= 100 ? 'danger' : rawPct >= 80 ? 'warning' : 'ok';
- 
-    document.getElementById('fillBar').style.width = pct + '%';
-    document.getElementById('fillBar').className = 'fill ' + status;
-    document.getElementById('pctLabel').textContent = rawPct + '%';
-    document.getElementById('pctLabel').className = 'pct-label ' + status;
- 
-    const alertBox = document.getElementById('alertBox');
-    const alertMsg = document.getElementById('alertMsg');
-    if (rawPct >= 100) {
-      alertBox.className = 'alert show danger';
-      alertMsg.textContent = 'Presupuesto superado en ' + cop(total - tope) + '. Revisa tus gastos del mes.';
-    } else if (rawPct >= 80) {
-      alertBox.className = 'alert show warning';
-      alertMsg.textContent = 'Llevas el ' + rawPct + '% del presupuesto. Te quedan ' + cop(tope - total) + ' disponibles.';
-    } else {
-      alertBox.className = 'alert';
+
+  <script>
+    const API = '/api/notion';
+    const COP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+
+    const state = {
+      mes: 'Mayo 2026',
+      gastos: [],
+      topes: JSON.parse(localStorage.getItem('topes2026') || '{}'),
+      chart: null
+    };
+
+    function setStatus(kind, text) {
+      const el = document.getElementById('status');
+      el.className = 'status-badge ' + kind;
+      document.getElementById('statusText').textContent = text;
     }
-  } else {
-    document.getElementById('mTope').textContent = 'Sin definir';
-    document.getElementById('mDisp').textContent = '—';
-    document.getElementById('pfTope').textContent = '— tope no definido';
-    document.getElementById('fillBar').style.width = '0%';
-    document.getElementById('pctLabel').textContent = '0%';
-    document.getElementById('alertBox').className = 'alert';
-  }
- 
-  const fijo = pagados.filter(g => g.tipo === 'Fijo').reduce((s, g) => s + g.monto, 0);
-  const vari = pagados.filter(g => g.tipo === 'Variable').reduce((s, g) => s + g.monto, 0);
-  const ocas = pagados.filter(g => g.tipo !== 'Fijo' && g.tipo !== 'Variable').reduce((s, g) => s + g.monto, 0);
-  document.getElementById('tFijo').textContent = cop(fijo);
-  document.getElementById('tVar').textContent = cop(vari);
-  document.getElementById('tOcas').textContent = cop(ocas);
- 
-  const porCat = {};
-  pagados.forEach(g => { if (g.monto > 0) porCat[g.cat] = (porCat[g.cat] || 0) + g.monto; });
-  const sorted = Object.entries(porCat).sort((a, b) => b[1] - a[1]);
- 
-  const catList = document.getElementById('catList');
-  if (!sorted.length) {
-    catList.innerHTML = '<div class="cat-empty">Sin gastos con monto registrado este mes</div>';
-  } else {
-    const maxV = sorted[0][1];
-    catList.innerHTML = sorted.map(([cat, val]) => `
-      <div class="cat-row">
-        <div class="cat-name">${cat}</div>
-        <div class="cat-track"><div class="cat-fill" style="width:${(val/maxV*100).toFixed(1)}%;background:${CAT_COLORS[cat]||'#888'}"></div></div>
-        <div class="cat-amount">${cop(val)}</div>
-      </div>
-    `).join('');
-  }
- 
-  const labels = sorted.map(([c]) => c);
-  const values = sorted.map(([, v]) => v);
-  const colors = labels.map(l => CAT_COLORS[l] || '#888');
- 
-  if (chart) {
-    chart.data.labels = labels;
-    chart.data.datasets[0].data = values;
-    chart.data.datasets[0].backgroundColor = colors;
-    chart.update('none');
-  } else {
-    chart = new Chart(document.getElementById('donut'), {
-      type: 'doughnut',
-      data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0 }] },
-      options: {
-        responsive: true, maintainAspectRatio: false, cutout: '68%',
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ' ' + cop(ctx.parsed) } }
-        }
+
+    function showError(msg) {
+      const box = document.getElementById('errorBox');
+      if (!msg) { box.innerHTML = ''; return; }
+      box.innerHTML = '<div class="error-banner">⚠️ ' + escapeHTML(msg) + '</div>';
+    }
+
+    async function fetchGastos() {
+      setStatus('loading', 'Cargando…');
+      showError('');
+      try {
+        const res = await fetch(API + '?mes=' + encodeURIComponent(state.mes));
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Error de conexión');
+        state.gastos = data.gastos || [];
+        setStatus('ok', 'Conectado');
+        render();
+      } catch (err) {
+        setStatus('error', 'Error de conexión');
+        showError(err.message);
+        state.gastos = [];
+        render();
       }
+    }
+
+    function render() {
+      const gastos = state.gastos;
+      const total = gastos.reduce((s, g) => s + (g.monto || 0), 0);
+      const tope = state.topes[state.mes] || 0;
+      const disponible = tope - total;
+      const pct = tope > 0 ? Math.min((total / tope) * 100, 100) : 0;
+      const pctReal = tope > 0 ? (total / tope) * 100 : 0;
+
+      document.getElementById('totalGastado').textContent = COP.format(total);
+      document.getElementById('numGastos').textContent = gastos.length;
+
+      const topeDisplay = document.getElementById('topeDisplay');
+      const dispDisplay = document.getElementById('disponible');
+      if (tope > 0) {
+        topeDisplay.textContent = COP.format(tope);
+        topeDisplay.classList.remove('muted');
+        dispDisplay.textContent = COP.format(disponible);
+        dispDisplay.classList.remove('muted');
+        dispDisplay.style.color = disponible < 0 ? 'var(--red)' : 'var(--text)';
+      } else {
+        topeDisplay.textContent = 'Sin definir';
+        topeDisplay.classList.add('muted');
+        dispDisplay.textContent = '—';
+        dispDisplay.classList.add('muted');
+        dispDisplay.style.color = '';
+      }
+
+      document.getElementById('topeInput').value = tope || '';
+
+      const fill = document.getElementById('progressFill');
+      const msg = document.getElementById('progressMsg');
+      fill.style.width = pct + '%';
+      document.getElementById('progressPct').textContent = pctReal.toFixed(0) + '%';
+      msg.className = 'progress-message';
+      if (tope === 0) {
+        fill.style.background = 'var(--text-soft)';
+        msg.textContent = COP.format(total) + ' gastado · tope no definido';
+      } else if (pctReal >= 100) {
+        fill.style.background = 'var(--red)';
+        msg.classList.add('danger');
+        msg.textContent = '🚨 Excediste el tope por ' + COP.format(total - tope);
+      } else if (pctReal >= 80) {
+        fill.style.background = 'var(--yellow)';
+        msg.classList.add('warning');
+        msg.textContent = '⚠️ Cerca del tope · te quedan ' + COP.format(disponible);
+      } else {
+        fill.style.background = 'var(--green)';
+        msg.textContent = COP.format(disponible) + ' disponibles este mes';
+      }
+
+      const sumTipo = (tipo) => gastos.filter(g => g.tipo === tipo).reduce((s, g) => s + (g.monto || 0), 0);
+      document.getElementById('fijos').textContent = COP.format(sumTipo('Fijo'));
+      document.getElementById('variables').textContent = COP.format(sumTipo('Variable'));
+      document.getElementById('ocasionales').textContent = COP.format(sumTipo('Ocasional') + sumTipo('Anual'));
+
+      const catMap = {};
+      gastos.forEach(g => {
+        const k = g.categoria || 'Sin categoría';
+        catMap[k] = (catMap[k] || 0) + (g.monto || 0);
+      });
+      const catEntries = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
+      const maxCat = catEntries.length ? catEntries[0][1] : 1;
+      const catList = document.getElementById('catList');
+      if (!catEntries.length) {
+        catList.innerHTML = '<div class="empty-state">Sin gastos en este mes</div>';
+      } else {
+        catList.innerHTML = catEntries.map(([nombre, monto]) => {
+          const pctBar = maxCat > 0 ? (monto / maxCat * 100) : 0;
+          return '<div class="cat-row"><div class="cat-name">' + escapeHTML(nombre) +
+                 '</div><div class="cat-bar-wrap"><div class="cat-bar-fill" style="width:' + pctBar + '%"></div></div>' +
+                 '<div class="cat-amount">' + COP.format(monto) + '</div></div>';
+        }).join('');
+      }
+
+      renderChart(catEntries);
+
+      const tbody = document.getElementById('tbody');
+      if (!gastos.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Sin gastos registrados</td></tr>';
+      } else {
+        const sorted = [...gastos].sort((a, b) => (b.monto || 0) - (a.monto || 0));
+        tbody.innerHTML = sorted.map(g =>
+          '<tr><td>' + escapeHTML(g.gasto) + '</td>' +
+          '<td>' + escapeHTML(g.categoria || '') + '</td>' +
+          '<td>' + escapeHTML(g.tipo || '') + '</td>' +
+          '<td>' + escapeHTML(g.estado || '') + '</td>' +
+          '<td class="amount">' + COP.format(g.monto || 0) + '</td>' +
+          '<td class="actions"><button class="btn-delete" data-id="' + g.id + '" title="Eliminar">×</button></td></tr>'
+        ).join('');
+        tbody.querySelectorAll('.btn-delete').forEach(b => {
+          b.addEventListener('click', () => deleteGasto(b.dataset.id));
+        });
+      }
+    }
+
+    function renderChart(entries) {
+      const ctx = document.getElementById('chart').getContext('2d');
+      if (state.chart) state.chart.destroy();
+      if (!entries.length) return;
+      const colors = ['#2563EB','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899','#06B6D4','#84CC16','#F97316'];
+      state.chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: entries.map(e => e[0]),
+          datasets: [{
+            data: entries.map(e => e[1]),
+            backgroundColor: entries.map((_, i) => colors[i % colors.length]),
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { family: 'DM Sans', size: 11 }, boxWidth: 12 } }
+          }
+        }
+      });
+    }
+
+    function escapeHTML(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    async function deleteGasto(id) {
+      if (!confirm('¿Eliminar este gasto?')) return;
+      try {
+        const res = await fetch(API + '?id=' + id, { method: 'DELETE' });
+        if (!res.ok) throw new Error('No se pudo eliminar');
+        await fetchGastos();
+      } catch (err) {
+        showError(err.message);
+      }
+    }
+
+    async function saveGasto() {
+      const payload = {
+        gasto: document.getElementById('fGasto').value.trim(),
+        monto: Number(document.getElementById('fMonto').value) || 0,
+        categoria: document.getElementById('fCategoria').value,
+        subcategoria: document.getElementById('fSubcategoria').value.trim(),
+        mes: state.mes,
+        tipo: document.getElementById('fTipo').value,
+        metodoPago: document.getElementById('fMetodo').value,
+        estado: '⏳ Pendiente'
+      };
+      if (!payload.gasto) { alert('Falta el nombre del gasto'); return; }
+      try {
+        const res = await fetch(API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Error al guardar');
+        clearForm();
+        await fetchGastos();
+      } catch (err) {
+        showError(err.message);
+      }
+    }
+
+    function clearForm() {
+      ['fGasto','fMonto','fSubcategoria'].forEach(id => document.getElementById(id).value = '');
+      ['fCategoria','fTipo','fMetodo'].forEach(id => document.getElementById(id).value = '');
+    }
+
+    function exportCSV() {
+      if (!state.gastos.length) return;
+      const headers = ['Gasto','Categoría','Subcategoría','Monto','Tipo','Método','Estado','Fecha'];
+      const rows = state.gastos.map(g => [g.gasto, g.categoria, g.subcategoria, g.monto, g.tipo, g.metodoPago, g.estado, g.fechaPago]);
+      const csv = [headers, ...rows].map(r => r.map(c => '"' + String(c || '').replace(/"/g, '""') + '"').join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'gastos-' + state.mes.replace(' ', '-') + '.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('mesSelect').addEventListener('change', e => {
+      state.mes = e.target.value;
+      fetchGastos();
     });
-  }
- 
-  const legendBox = document.getElementById('legendBox');
-  if (!sorted.length) {
-    legendBox.innerHTML = '<span style="font-size:12px;color:var(--text3)">Sin datos aún</span>';
-  } else {
-    legendBox.innerHTML = sorted.map(([cat, val]) => `
-      <div class="legend-item">
-        <div class="legend-dot" style="background:${CAT_COLORS[cat]||'#888'}"></div>
-        <span class="legend-name">${cat.replace(/^\S+\s/, '')}</span>
-        <span class="legend-val">${total > 0 ? Math.round(val/total*100) : 0}%</span>
-      </div>
-    `).join('');
-  }
- 
-  const tbody = document.getElementById('gastosBody');
-  const conMonto = gastos.filter(g => g.monto > 0);
-  if (!conMonto.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty-table">Sin gastos con monto registrado para este mes</td></tr>';
-  } else {
-    tbody.innerHTML = conMonto.map(g => `
-      <tr>
-        <td>${g.nombre}</td>
-        <td style="font-size:12px;color:var(--text2)">${(g.cat||'').replace(/^\S+\s/, '')}</td>
-        <td><span class="tag ${(g.tipo||'').toLowerCase()}">${g.tipo||'—'}</span></td>
-        <td style="font-size:12px;color:var(--text3)">${g.estado||'—'}</td>
-        <td class="mono" style="text-align:right;color:var(--text)">${cop(g.monto)}</td>
-      </tr>
-    `).join('');
-  }
-}
- 
-document.getElementById('mesSelect').addEventListener('change', () => {
-  gastos = [];
-  document.getElementById('topeInput').value = topes[getMes()] || '';
-  render();
-  cargarDesdeNotion();
-});
- 
-cargarDesdeNotion();
-</script>
+    document.getElementById('syncBtn').addEventListener('click', fetchGastos);
+    document.getElementById('topeBtn').addEventListener('click', () => {
+      const v = Number(document.getElementById('topeInput').value) || 0;
+      state.topes[state.mes] = v;
+      localStorage.setItem('topes2026', JSON.stringify(state.topes));
+      render();
+    });
+    document.getElementById('saveBtn').addEventListener('click', saveGasto);
+    document.getElementById('clearBtn').addEventListener('click', clearForm);
+    document.getElementById('csvBtn').addEventListener('click', exportCSV);
+
+    fetchGastos();
+  </script>
 </body>
 </html>
