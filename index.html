@@ -54,6 +54,11 @@
       font-size: 13px; color: var(--text-3);
     }
     .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    @media (max-width: 640px) {
+      .controls { flex-wrap: nowrap; width: 100%; }
+      .controls #mesSelect { flex: 1; min-width: 0; }
+      .controls .pill, .controls .icon-btn { flex-shrink: 0; }
+    }
     .pill {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 4px 10px; border-radius: 999px;
@@ -86,6 +91,13 @@
     }
     button.primary:hover { background: #1A1A1A; }
     button.ghost { background: transparent; }
+    button.icon-btn {
+      width: 40px; padding: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    button.icon-btn svg { width: 16px; height: 16px; display: block; }
+    button.icon-btn.spinning svg { animation: spin 0.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ----- Hero ----- */
     .hero {
@@ -319,7 +331,12 @@
           <option>Noviembre 2026</option>
           <option>Diciembre 2026</option>
         </select>
-        <button class="ghost" id="syncBtn">Sincronizar</button>
+        <button class="ghost icon-btn" id="syncBtn" aria-label="Sincronizar" title="Sincronizar">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/>
+            <path d="M13.5 2.5v3h-3"/>
+          </svg>
+        </button>
       </div>
     </div>
 
