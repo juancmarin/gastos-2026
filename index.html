@@ -261,7 +261,22 @@
       padding: 14px 0; border-bottom: 1px solid var(--border);
     }
     .cat-row:last-child { border-bottom: none; }
-    .cat-name { font-size: 14px; color: var(--text); }
+    .cat-name { font-size: 14px; color: var(--text); display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .cat-name span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cat-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; flex-shrink: 0;
+      background: var(--surface); border-radius: 8px; color: var(--text);
+    }
+    .cat-icon svg { width: 16px; height: 16px; }
+    .cat-icon-sm {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; flex-shrink: 0;
+      background: var(--surface); border-radius: 6px; color: var(--text-2);
+      margin-right: 8px; vertical-align: middle;
+    }
+    .cat-icon-sm svg { width: 12px; height: 12px; }
+    .td-cat { display: flex; align-items: center; }
     .cat-bar-wrap {
       height: 4px; background: var(--surface-2); border-radius: 999px; overflow: hidden;
     }
@@ -390,15 +405,15 @@
         <input id="fMonto" type="number" placeholder="Monto (COP$)" min="0" class="mono">
         <select id="fCategoria">
           <option value="">Categoría</option>
-          <option>🏠 Vivienda y Servicios</option>
-          <option>🚗 Transporte y Vehículo</option>
-          <option>🍽️ Alimentación</option>
-          <option>📱 Tecnología y Suscripciones</option>
-          <option>🏥 Salud y Bienestar</option>
-          <option>👩‍💼 Personal y Hogar</option>
-          <option>💳 Financiero</option>
-          <option>🎭 Ocio y Entretenimiento</option>
-          <option>⚠️ Imprevistos</option>
+          <option value="🏠 Vivienda y Servicios">Vivienda y Servicios</option>
+          <option value="🚗 Transporte y Vehículo">Transporte y Vehículo</option>
+          <option value="🍽️ Alimentación">Alimentación</option>
+          <option value="📱 Tecnología y Suscripciones">Tecnología y Suscripciones</option>
+          <option value="🏥 Salud y Bienestar">Salud y Bienestar</option>
+          <option value="👩‍💼 Personal y Hogar">Personal y Hogar</option>
+          <option value="💳 Financiero">Financiero</option>
+          <option value="🎭 Ocio y Entretenimiento">Ocio y Entretenimiento</option>
+          <option value="⚠️ Imprevistos">Imprevistos</option>
         </select>
         <select id="fTipo">
           <option value="">Tipo</option>
@@ -507,6 +522,39 @@
   <script>
     const API = '/api/notion';
     const COP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+
+    const ICONS = {
+      home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+      car: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>',
+      food: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7a3 3 0 0 0 6 0V2"/><path d="M6 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>',
+      phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>',
+      health: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></svg>',
+      user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+      card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>',
+      ticket: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>',
+      alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
+      tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>'
+    };
+
+    const CATEGORY_ICON = {
+      'Vivienda y Servicios': ICONS.home,
+      'Transporte y Vehículo': ICONS.car,
+      'Alimentación': ICONS.food,
+      'Tecnología y Suscripciones': ICONS.phone,
+      'Salud y Bienestar': ICONS.health,
+      'Personal y Hogar': ICONS.user,
+      'Financiero': ICONS.card,
+      'Ocio y Entretenimiento': ICONS.ticket,
+      'Imprevistos': ICONS.alert
+    };
+
+    function stripEmoji(s) {
+      if (!s) return '';
+      return s.replace(/^\p{Extended_Pictographic}(‍\p{Extended_Pictographic})*️?\s*/u, '').trim();
+    }
+    function iconFor(name) {
+      return CATEGORY_ICON[stripEmoji(name)] || ICONS.tag;
+    }
 
     const state = {
       mes: 'Mayo 2026',
@@ -630,7 +678,9 @@
       } else {
         catList.innerHTML = catEntries.map(([nombre, monto]) => {
           const pctBar = maxCat > 0 ? (monto / maxCat * 100) : 0;
-          return '<div class="cat-row"><div class="cat-name">' + escapeHTML(nombre) +
+          return '<div class="cat-row"><div class="cat-name">' +
+                 '<span class="cat-icon">' + iconFor(nombre) + '</span>' +
+                 '<span>' + escapeHTML(stripEmoji(nombre)) + '</span>' +
                  '</div><div class="cat-bar-wrap"><div class="cat-bar-fill" style="width:' + pctBar + '%"></div></div>' +
                  '<div class="cat-amount mono">' + COP.format(monto) + '</div></div>';
         }).join('');
@@ -645,7 +695,7 @@
         const sorted = [...gastos].sort((a, b) => (b.monto || 0) - (a.monto || 0));
         tbody.innerHTML = sorted.map(g =>
           '<tr><td>' + escapeHTML(g.gasto) + '</td>' +
-          '<td>' + escapeHTML(g.categoria || '') + '</td>' +
+          '<td><span class="td-cat"><span class="cat-icon-sm">' + iconFor(g.categoria || '') + '</span>' + escapeHTML(stripEmoji(g.categoria || '')) + '</span></td>' +
           '<td>' + escapeHTML(g.tipo || '') + '</td>' +
           '<td>' + badgeFor(g.estado) + '</td>' +
           '<td class="amount">' + COP.format(g.monto || 0) + '</td>' +
@@ -665,7 +715,7 @@
       state.chart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: entries.map(e => e[0]),
+          labels: entries.map(e => stripEmoji(e[0])),
           datasets: [{
             data: entries.map(e => e[1]),
             backgroundColor: entries.map((_, i) => colors[i % colors.length]),
