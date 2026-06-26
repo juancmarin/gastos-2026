@@ -221,6 +221,8 @@
       display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
       margin-bottom: 24px;
     }
+    .two-col > * { min-width: 0; }
+    .chart-wrap canvas { max-width: 100%; }
     @media (max-width: 720px) { .two-col { grid-template-columns: 1fr; } }
 
     /* ----- Tipos sub-strip ----- */
