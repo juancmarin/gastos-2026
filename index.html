@@ -55,6 +55,8 @@
     }
     .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     @media (max-width: 640px) {
+      .topbar { justify-content: center; }
+      .brand { width: 100%; justify-content: center; text-align: center; }
       .controls { flex-wrap: nowrap; width: 100%; }
       .controls #mesSelect { flex: 1; min-width: 0; }
       .controls .pill, .controls .icon-btn { flex-shrink: 0; }
