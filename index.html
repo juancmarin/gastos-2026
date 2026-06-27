@@ -27,7 +27,8 @@
       --ease: cubic-bezier(0.16, 1, 0.3, 1);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { background: var(--bg); }
+    html, body { background: var(--bg); overflow-x: hidden; }
+    html, body { max-width: 100%; }
     body {
       font-family: 'Roboto', system-ui, -apple-system, sans-serif;
       color: var(--text);
@@ -54,7 +55,7 @@
     .brand-sub {
       font-size: 13px; color: var(--text-3);
     }
-    .brand .logo { height: 28px; width: auto; display: block; }
+    .brand .logo { height: 28px; width: 99px; display: block; max-width: 100%; }
     .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     @media (max-width: 640px) {
       .topbar { justify-content: center; }
