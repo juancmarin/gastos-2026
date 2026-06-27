@@ -548,12 +548,27 @@
       'Imprevistos': ICONS.alert
     };
 
+    const CATEGORY_COLOR = {
+      'Vivienda y Servicios':       { bg: '#E0E7FF', fg: '#4F46E5' },
+      'Transporte y Vehículo':      { bg: '#FFEDD5', fg: '#EA580C' },
+      'Alimentación':               { bg: '#D1FAE5', fg: '#059669' },
+      'Tecnología y Suscripciones': { bg: '#EDE9FE', fg: '#7C3AED' },
+      'Salud y Bienestar':          { bg: '#FFE4E6', fg: '#E11D48' },
+      'Personal y Hogar':           { bg: '#CCFBF1', fg: '#0D9488' },
+      'Financiero':                 { bg: '#DBEAFE', fg: '#2563EB' },
+      'Ocio y Entretenimiento':     { bg: '#FCE7F3', fg: '#DB2777' },
+      'Imprevistos':                { bg: '#FEF3C7', fg: '#D97706' }
+    };
+
     function stripEmoji(s) {
       if (!s) return '';
       return s.replace(/^\p{Extended_Pictographic}(‍\p{Extended_Pictographic})*️?\s*/u, '').trim();
     }
     function iconFor(name) {
       return CATEGORY_ICON[stripEmoji(name)] || ICONS.tag;
+    }
+    function colorFor(name) {
+      return CATEGORY_COLOR[stripEmoji(name)] || { bg: '#EFEFEF', fg: '#545454' };
     }
 
     const state = {
@@ -678,10 +693,11 @@
       } else {
         catList.innerHTML = catEntries.map(([nombre, monto]) => {
           const pctBar = maxCat > 0 ? (monto / maxCat * 100) : 0;
+          const c = colorFor(nombre);
           return '<div class="cat-row"><div class="cat-name">' +
-                 '<span class="cat-icon">' + iconFor(nombre) + '</span>' +
+                 '<span class="cat-icon" style="background:' + c.bg + ';color:' + c.fg + '">' + iconFor(nombre) + '</span>' +
                  '<span>' + escapeHTML(stripEmoji(nombre)) + '</span>' +
-                 '</div><div class="cat-bar-wrap"><div class="cat-bar-fill" style="width:' + pctBar + '%"></div></div>' +
+                 '</div><div class="cat-bar-wrap"><div class="cat-bar-fill" style="width:' + pctBar + '%;background:' + c.fg + '"></div></div>' +
                  '<div class="cat-amount mono">' + COP.format(monto) + '</div></div>';
         }).join('');
       }
@@ -693,14 +709,15 @@
         tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Sin gastos registrados</td></tr>';
       } else {
         const sorted = [...gastos].sort((a, b) => (b.monto || 0) - (a.monto || 0));
-        tbody.innerHTML = sorted.map(g =>
-          '<tr><td>' + escapeHTML(g.gasto) + '</td>' +
-          '<td><span class="td-cat"><span class="cat-icon-sm">' + iconFor(g.categoria || '') + '</span>' + escapeHTML(stripEmoji(g.categoria || '')) + '</span></td>' +
+        tbody.innerHTML = sorted.map(g => {
+          const c = colorFor(g.categoria || '');
+          return '<tr><td>' + escapeHTML(g.gasto) + '</td>' +
+          '<td><span class="td-cat"><span class="cat-icon-sm" style="background:' + c.bg + ';color:' + c.fg + '">' + iconFor(g.categoria || '') + '</span>' + escapeHTML(stripEmoji(g.categoria || '')) + '</span></td>' +
           '<td>' + escapeHTML(g.tipo || '') + '</td>' +
           '<td>' + badgeFor(g.estado) + '</td>' +
           '<td class="amount">' + COP.format(g.monto || 0) + '</td>' +
-          '<td class="actions"><button class="btn-delete" data-id="' + g.id + '" title="Eliminar">×</button></td></tr>'
-        ).join('');
+          '<td class="actions"><button class="btn-delete" data-id="' + g.id + '" title="Eliminar">×</button></td></tr>';
+        }).join('');
         tbody.querySelectorAll('.btn-delete').forEach(b => {
           b.addEventListener('click', () => deleteGasto(b.dataset.id));
         });
@@ -711,7 +728,7 @@
       const ctx = document.getElementById('chart').getContext('2d');
       if (state.chart) state.chart.destroy();
       if (!entries.length) return;
-      const colors = ['#000000','#545454','#8E8E8E','#00C16A','#F4B400','#E11900','#C4C4C4','#1A1A1A','#737373'];
+      const colors = entries.map(e => colorFor(e[0]).fg);
       state.chart = new Chart(ctx, {
         type: 'doughnut',
         data: {
